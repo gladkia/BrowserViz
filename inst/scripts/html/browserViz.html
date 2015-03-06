@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>BrowserViz</title>
+   <script src="http://oncoscape.sttrcancer.org/oncoscape/js/jquery-2.1.1.js"></script>
+   <script src="http://oncoscape.sttrcancer.org/oncoscape/js/jquery-ui-1.11.2.min.js"></script>
+   <link   rel="stylesheet" href="http://oncoscape.sttrcancer.org/oncoscape/css/jquery-ui-1.11.2.css">
+   <script src="http://oncoscape.sttrcancer.org/oncoscape/js/cytoscape-2.3.3.js"></script>
+   <script src="http://oncoscape.sttrcancer.org/oncoscape/js/jquery.cytoscape.js-panzoom.js"></script>
+   <link   href="http://oncoscape.sttrcancer.org/oncoscape/css/jquery.cytoscape.js-panzoom.css" 
+           rel="stylesheet" 
+           type="text/css" />
+   <link   href="http://oncoscape.sttrcancer.org/oncoscape/fonts/font-awesome-4.0.3/css/font-awesome.css" 
+           rel="stylesheet" 
+           type="text/css" />
+
+<style>
+
+.center {
+   margin-left: auto;
+   margin-right: auto;
+   width: 70%;
+   background-color: #b0e0e6;
+   }
+
+#browserVizDiv {
+  background-color: #FFFFFF;
+  position: relative;
+  height: 400px;
+  width: 600px;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 20px;
+  margin-bottom: auto;
+  padding: 0px;
+  }
+
+
+</style>
+
+<script>
+
+//----------------------------------------------------------------------------------------------------
+var webSocketURL = window.location.href.replace("http://", "ws://");
+var websocket = new WebSocket(webSocketURL);
+var dispatchOptions = {};
+var onReadyFunctions = [];
+var browserVizDiv;
+//----------------------------------------------------------------------------------------------------
+websocket.onmessage = function(msg)
+{
+  msg = JSON.parse(msg.data);
+  console.log("=== ws.onmessage");
+  console.log(msg);
+  dispatchMessage(msg);
+
+} // onmessage
+//--------------------------------------------------------------------------------
+function send(msg)
+{
+   console.log("about to websocket.send cmd: " + msg.cmd);
+   websocket.send(JSON.stringify(msg));
+   
+}  // send
+//--------------------------------------------------------------------------------
+function handleWindowResize ()
+{
+   browserVizDiv.width(0.95 * $(window).width());
+   browserVizDiv.height(0.95 * $(window).height());
+
+} // handleWindowResize
+//--------------------------------------------------------------------------------
+addMessageHandler = function(cmd, func)
+{
+   if(cmd in dispatchOptions){
+      alert("javascript message handler for '" +  cmd + " already set");
+      }
+   else{
+      dispatchOptions[cmd] = func
+      }
+}
+//----------------------------------------------------------------------------------------------------
+dispatchMessage = function(msg)
+{
+   console.log("--- webapp, index.common, dispatchMessage: " + msg.cmd);
+
+   if (dispatchOptions[msg.cmd])
+       dispatchOptions[msg.cmd](msg)
+   else
+      console.log("unrecognized socket request: " + msg.cmd);
+} 
+//--------------------------------------------------------------------------------------------------
+function ready(msg)
+{
+   return_msg = {cmd: msg.callback, status: "success", callback: "", payload: "ready"};
+   send(return_msg);
+
+} // ready
+//----------------------------------------------------------------------------------------------------
+function getWindowTitle(msg)
+{
+   send({cmd: msg.callback, status: "success", callback: "",payload: window.document.title});
+
+} // getWindowTitle
+//----------------------------------------------------------------------------------------------------
+function setWindowTitle(msg)
+{
+
+   window.document.title = msg.payload;
+   send({cmd: msg.callback, status: "success", callback: "", payload: window.document.title});
+
+} // setWindowTitle
+//----------------------------------------------------------------------------------------------------
+function getWindowSize(msg)
+{
+   var width = $(window).width()
+   var height = $(window).height()
+   return_msg = {cmd: msg.callback, status: "success", 
+                 callback: "", payload: JSON.stringify({width:width, height: height})};
+   send(return_msg);
+
+} // getWindowSize
+//----------------------------------------------------------------------------------------------------
+$(document).ready(function() {
+
+   addMessageHandler("ready", ready)   
+   addMessageHandler("getWindowTitle", getWindowTitle)   
+   addMessageHandler("setWindowTitle", setWindowTitle)   
+   addMessageHandler("getWindowSize",  getWindowSize)
+
+   console.log("==== document ready");
+   browserVizDiv = $("#browserVizDiv")
+
+   $(window).resize(handleWindowResize);
+   handleWindowResize();
+
+   }) // document.ready
+
+//----------------------------------------------------------------------------------------------------
+</script>
+
+</head>
+<body>
+<div id="browserVizDiv"></div>
+</body>
+</html>
+

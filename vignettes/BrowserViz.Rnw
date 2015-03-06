@@ -1,0 +1,192 @@
+%\VignetteIndexEntry{BrowserViz}
+%\VignettePackage{BrowserViz}
+%\VignetteEngine{utils::Sweave}
+
+\documentclass{article}
+
+<<style, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@ 
+
+\newcommand{\exitem}[3]{\item \texttt{\textbackslash#1\{#2\}} #3 \csname#1\endcsname{#2}.}
+\title{BrowserViz}
+\author{Paul Shannon}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+\Biocpkg{BrowserViz} provides the basis for, and a very simple working example of, 
+interactive R/browser visualization.  Thus two interactive powerful and complementary
+environments are linked, creating a powerful hybrid setting for exploratory data analysis.
+
+
+This work is motivated by our belief that contemporary web browsers, supporting
+HTML5 and Canvas, and running increasingly powerful Javascript libraries (for example, \emph{d3}
+and \emph{cytoscape.js} have become the best setting in which to
+develop interactive graphics for exploratory data analysis.  We 
+predict that web browsers, already powerful and easily
+programmed, will steadily improve in rendiring power and interactivity, and thus
+remain the optimal setting for interactive R visualization for years to come.
+(An example of what the future of browser-based graphics may hold can be seen in
+Google's \emph{NaCL} project \url{https://developer.chrome.com/native-client}, a
+sand-boxing technique for running native OpenGL 3D applications in the browser.)
+
+\CRANpkg{Shiny} and \CRANpkg{htmlwidgets} are two very popular packages which provide
+solutions to this same general problem:  how does one use the power of web browser graphics from R?  
+Both of these package create bindings in R to HTML widgets and Javascript objects.
+This creates representations for these objects in R: a button, a d3 scatterplot, an
+interactive geographic map. The two packages provide elegant support for these bindings
+and a clear path to creating more of them.
+
+\Biocpkg{BrowserViz's} difference from these fine and popular packages by 
+provding only \emph{loose  coupling} of R and the browser.  In slogan form, our approach 
+can be summarized, ``let R be R, and Javascript be Javascript''.  Two rich programming
+environments are linked, but the environments are kept
+maximally ignorant of each other.  Only simple JSON messages pass back and forth,
+and these are at a high semantic level: no HTML, CSS or Javascript.  Rather than
+creating representations of web objects in R, which would be tight-coupling of the
+two environments, \Biocpkg{BrowserViz} provides a style of programming in which 
+
+\begin{itemize}
+   \item Web objects are (just as in standard widespread web programming) created in HTML, CSS and Javascript
+   \item JSON and websockets provide simple explicit message passing between R and the browser
+   \item High-level web objects (i.e., an xy plotter, or a network viewer) are created by and manipulated 
+         by Javscript functions at the request of high-level R function calls
+   \item Web elements can initiate (call back to) R functions
+   \item A traditional event-driven architecture is used throughout, in which events are either R function calls or user (keyboard or mouse) actions in the browser. 
+\end{itemize}
+
+\Biocpkg{BrowserViz} provides a very low threshold for those wishing to create R/web browser visualizations.
+This base package hides the  complexity of websocket initiation and message passing.
+The websocket communication channel is created with a single R function call.
+Passing messages and handling responses is similarly simple.  The
+intricacy (or simplicity) of the web browser interface is determined by the programmer. A 
+vast collection of easily available books, examples, tutorials, and support websites make web browser
+programming especially easy to learn.  The \Biocpkg{BrowserViz} approach will be of
+interest to any programmer interested in the visualization of data, and proficient in -- or willing
+to learn -- both R and Javascript.
+
+Standalone web sites can be created, but the primary intended audience for this package
+is the R programmmer exploring and analyzing data in R and using the browser visualization for the 
+indispensable benefits it provides.  We hope that many visualization tools will be created.  We provide
+a simple x-y plotter (see \Biocpkg{BrowserPlot2D}) to illustrate how to write a BrowserViz subclass
+application.  The \Biocpkg{RCyjs}  is a full-featured visualization tool for network visualization built
+upon \emph{cytoscape.js} (see \url{http://js.cytoscape.org}).
+and the web browser.  
+
+The \Biocpkg{BrowserViz} class, though a base class intended for subclassing,
+includes a simple demo which performs a few elementary browser manipulations,
+and queries the browser for some simple state (window size, window title,
+browser version).  The principal goal of the package is to provide the the
+websocket ``plumbing'' along with a standard (simple, open-ended) message
+protocol for communicating between the two environments.
+
+
+\section{A Standard Message Format}
+
+Just as the ubiquitous and language-neutral \emph{websockets} protocol provides the
+\Biocpkg{BrowserViz} communication mechanism, so does \emph{JSON} provide the message notation.
+Native data types in R (a named list) and Javascript (an object, with key:value pairs) are
+easily converted to and from JSON by libraries standard in each language.  We have adopted
+a simple, adaptable data structure flexible enough for all of the uses so far encountered.  In
+JSON (and Javascript):
+
+\begin{verbatim}
+    {{cmd: "setWindowTitle", status: "request", callback:"handleResponse", 
+      payload: "BrowserViz Demo"}}
+\end{verbatim}
+
+Websocket servers both send and receive messages.  Thus a typical \Biocpkg{BrowserViz} event begins
+with sending a message from one environment to the other, and often concludes with some sort of a return or
+``callback'' message.
+
+\begin{itemize}
+   \item \emph{cmd}: the name of the operation the sender wishes to be performed by the receiver.
+   \item \emph{status}: might be ``success'', ``failure'', ``error'', ``deferred response''.
+   \item \emph{callback}: provided by the sender, this specifies the operation which the receiver is 
+     to call \emph{in the client} after it (the receiver) completes the operation it was asked to perform.
+   \item \emph{payload} An open-ended data structure, sometimes empty, as simple as a character string, as complex
+              as any conceivable deeply nested list.  
+              
+\end{itemize}
+
+<<RJSON>>=
+  library(jsonlite)
+  msg <- toJSON(list(cmd="setWindowTitle", status="request", 
+                     callback="handleResponse", payload="BrowserViz demo"))
+@ 
+
+The callback for this request could be empty, which by convention we encode as the empty string.
+The calling code, in R, and the receiving code, in Javascript, only need to be consistent.  If the 
+caller provides a non-empty \emph{callback}, the Javascript receiver should craft and send a return message
+with the canonical four fields specifying \emph{cmd=callback} and any \emph{payload} the caller expects, 
+perhaps
+
+\begin{verbatim}
+    {cmd: "handleResponse", status: "success", callback:"",  payload: "BrowserViz Demo"}
+\end{verbatim}
+
+An empty \emph{payload} could also be used, in which case the \emph{success} status of the
+return command is the only information returned from Javascript to R.  All decisions of this
+sort are left to the programmer.  Often the same person writes the R and the Javascript code
+that talk back and forth over the websocket.  If different programmers are involved, then
+careful communication and documentation is required, of the expectations, contraints and
+\emph{payload} structure.  
+
+
+\section{The Simple BrowserViz ``Application''}
+
+We predict that the principal use of \Biocpkg{BrowserViz} will be as a base class for other
+rich visualzation packages, and that authors of those derived classes will be be able
+to proceed without any direct involvement in the nuts and bolts of websocket creation
+and handling.  Nonetheless, \Biocpkg{BrowserViz} is a complete R/browser application, albeit
+one with only a few features.   These features (R methods on the BrowserViz object), few though
+they be, are automatically available to all \Biocpkg{BrowserViz} subclasses.
+
+\begin{itemize}
+   \item \emph{port}:
+   \item \emph{ready}:
+   \item \emph{browserResponseReady}:
+   \item \emph{getBrowserResponse}:
+   \item \emph{close}:
+   \item \emph{send}:
+   \item \emph{getWindowSize}:
+   \item \emph{getWindowTitle}:
+   \item \emph{setWindowTitle}:
+\end{itemize}
+
+This describes the R component of the package.  It is complemented by an HTML/Javascript/CSS component;
+call it the ``web component''.   In simple visualizations this web component is a single file whose
+name is provided to the BrowserViz constructor.  We depend upon the \Biocpkg{httpuv} package which
+functions primarily as a websocket server, but also includes a simple http web server.  Once the
+web socket is created and opened by \Biocpkg{BrowserViz}, the constructor asks the default 
+web browser to display the web component html page.  Javascript in this page then opens a connection
+back to the \Biocpkg{BrowserViz} web socket server, and the application is ready to go.
+
+\section{Simple Subclassing Overview}
+
+The \Biocpkg{BrowserPlot2D} package shows how to build upon \Biocpkg{BrowserViz}.  \Biocpkg{BrowserPlot2D} 
+is an S4 class; its Javascript component uses the \emph{d3} graphics library to 
+render x,y points onto an auto-scaled canvas with labeled axes.  The class  \emph{contains} 
+\Biocpkg{BrowserViz} and thus has all of the above operations, and these in addition
+
+\begin{itemize}
+   \item \emph{plot}: takes an x and y vector as arguments
+   \item \emph{getSelection}:  returns the names of all d3 selected points, in the browser plot, to R.
+\end{itemize}
+
+Thus the R programming is quite simple.
+
+Neither Javascript nor HTML provide any native mechanism for class inheritance.  So in order to create
+the web component of a new visualization application, there is unfortunately no alternative to copying the 
+\Biocpkg{BrowserViz} \emph{inst/scripts/viz.html} file into your new package's \emph{inst/scripts} 
+directory, preserving everything that is of use, then adding your own HTML markup, CSS, Javascript
+and probably jQuery, Boostrap and d3.
+
+
+\end{document}
