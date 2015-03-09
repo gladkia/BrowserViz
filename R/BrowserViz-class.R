@@ -1,7 +1,5 @@
 .getBrowser <- function()
 {
-    if(.Platform$OS.type == "windows ")
-        stop("BrowserViz not (yet) supported on Windows.")
     if(nchar(Sys.getenv("BROWSERVIZ_BROWSER")))
         Sys.getenv("BROWSERVIZ_BROWSER")
     else

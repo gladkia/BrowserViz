@@ -2,7 +2,7 @@ Package: BrowserViz
 Type: Package
 Title: BrowserViz: interactive R/browser graphics using websockets and
         JSON
-Version: 0.99.21
+Version: 0.99.22
 Date: 2015-03-09
 Author: Paul Shannon
 Maintainer: Paul Shannon <pshannon@fhcrc.org>
