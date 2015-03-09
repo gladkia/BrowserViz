@@ -33,10 +33,10 @@ dispatchMap <- new.env(parent=emptyenv())
 # holds the result variable.  this solves the latency problem: when we make
 # a request to the code running in the browser, the browser later (though
 # often very quickly) sends a JSON message back to R.  If we are, for instance,
-# asking for the current browser window title (see 'getWindowTitle' below), that
+# asking for the current browser window title (see 'getBrowserWindowTitle' below), that
 # result is sent to the  call back we have registered, "handleResponse")
 # to make this seem like a synchronous call, the caller sits in a tight sleep loop,
-# waiting until status$result is no longer NULL.  getWindowTitle will then
+# waiting until status$result is no longer NULL.  getBrowserWindowTitle will then
 # parse that JSON response into an R variable.
 # the checking of status$result, and its retrieval when ready (no longer null)
 # is accomplished by exported methods browserResponseReady and getBrowserResponse,
@@ -68,11 +68,11 @@ setGeneric('getBrowserInfo',          signature='obj', function(obj) standardGen
 setGeneric('send',                    signature='obj', function(obj, msg) standardGeneric('send'))
 setGeneric('browserResponseReady',    signature='obj', function(obj) standardGeneric('browserResponseReady'))
 setGeneric('getBrowserResponse',      signature='obj', function(obj) standardGeneric('getBrowserResponse'))
-setGeneric('close',                   signature=c('con', '...'), function(con, ...) standardGeneric('close'))
-setGeneric('getWindowTitle',          signature='obj', function(obj) standardGeneric('getWindowTitle'))
-setGeneric('setWindowTitle',          signature='obj', function(obj, newTitle, proclaim=FALSE)
-                                                                     standardGeneric('setWindowTitle'))
-setGeneric('getWindowSize',           signature='obj', function(obj) standardGeneric('getWindowSize'))
+setGeneric('closeWebSocket',          signature='obj', function(obj) standardGeneric('closeWebSocket'))
+setGeneric('getBrowserWindowTitle',   signature='obj', function(obj) standardGeneric('getBrowserWindowTitle'))
+setGeneric('setBrowserWindowTitle',   signature='obj', function(obj, newTitle, proclaim=FALSE)
+                                                                     standardGeneric('setBrowserWindowTitle'))
+setGeneric('getBrowserWindowSize',    signature='obj', function(obj) standardGeneric('getBrowserWindowSize'))
 #----------------------------------------------------------------------------------------------------
 setupMessageHandlers <- function()
 {
@@ -189,7 +189,7 @@ setMethod('port', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('close', 'BrowserVizClass',
+setMethod('closeWebSocket', 'BrowserVizClass',
 
   function (obj) {
      if(!obj@websocketConnection$open){
@@ -340,7 +340,7 @@ setMethod('getBrowserInfo', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('getWindowTitle', 'BrowserVizClass',
+setMethod('getBrowserWindowTitle', 'BrowserVizClass',
 
   function (obj) {
      send(obj, list(cmd="getWindowTitle", callback="handleResponse", status="request", payload=""))
@@ -351,7 +351,7 @@ setMethod('getWindowTitle', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('setWindowTitle', 'BrowserVizClass',
+setMethod('setBrowserWindowTitle', 'BrowserVizClass',
 
   function (obj, newTitle, proclaim=FALSE) {
      payload = list(title=newTitle, proclaim=proclaim)
@@ -364,7 +364,7 @@ setMethod('setWindowTitle', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('getWindowSize', 'BrowserVizClass',
+setMethod('getBrowserWindowSize', 'BrowserVizClass',
 
   function (obj) {
      send(obj, list(cmd="getWindowSize", callback="handleResponse", status="request", payload=""))

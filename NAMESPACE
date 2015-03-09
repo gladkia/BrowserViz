@@ -6,11 +6,11 @@ exportMethods (
    send,
    browserResponseReady,
    getBrowserResponse,
-   close,
+   closeWebSocket,
    port,
-   getWindowTitle,
-   setWindowTitle,
-   getWindowSize
+   getBrowserWindowTitle,
+   setBrowserWindowTitle,
+   getBrowserWindowSize
    )
 
 export(

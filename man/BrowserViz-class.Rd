@@ -9,17 +9,17 @@
 
 
 % class methods
-\alias{setWindowTitle}
-\alias{setWindowTitle,BrowserVizClass-method}
-\alias{\S4method{setWindowTitle}{BrowserVizClass}}
+\alias{setBrowserWindowTitle}
+\alias{setBrowserWindowTitle,BrowserVizClass-method}
+\alias{\S4method{setBrowserWindowTitle}{BrowserVizClass}}
 
-\alias{getWindowSize}
-\alias{getWindowSize,BrowserVizClass-method}
-\alias{\S4method{getWindowSize}{BrowserVizClass}}
+\alias{getBrowserWindowSize}
+\alias{getBrowserWindowSize,BrowserVizClass-method}
+\alias{\S4method{getBrowserWindowSize}{BrowserVizClass}}
 
-\alias{getWindowTitle}
-\alias{getWindowTitle,BrowserVizClass-method}
-\alias{\S4method{getWindowTitle}{BrowserVizClass}}
+\alias{getBrowserWindowTitle}
+\alias{getBrowserWindowTitle,BrowserVizClass-method}
+\alias{\S4method{getBrowserWindowTitle}{BrowserVizClass}}
 
 \alias{browserResponseReady}
 \alias{browserResponseReady,BrowserVizClass-method}
@@ -34,9 +34,9 @@
 \alias{port,BrowserVizClass-method}
 \alias{\S4method{port}{BrowserVizClass}}
 
-\alias{close}
-\alias{close,BrowserVizClass-method}
-\alias{\S4method{close}{BrowserVizClass}}
+\alias{closeWebSocket}
+\alias{closeWebSocket,BrowserVizClass-method}
+\alias{\S4method{closeWebSocket}{BrowserVizClass}}
 
 \alias{getBrowserInfo}
 \alias{getBrowserInfo,BrowserVizClass-method}
@@ -50,6 +50,9 @@
 \alias{ready,BrowserVizClass-method}
 \alias{\S4method{ready}{BrowserVizClass}}
 
+\alias{toJSON}
+\alias{addRMessageHandler}
+
 \title{BrowserViz: a base class (for extension) and standalone example
   of R/Javascript interactive web browser visualization}
 
@@ -62,17 +65,20 @@
 \usage{
 % functions first, starting with the class constructor
 BrowserViz(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserFile=NA)
+toJSON(..., auto_unbox=TRUE)
+addRMessageHandler(key, functionName)
+
 % now class methods
 \S4method{ready}{BrowserVizClass}(obj)
 \S4method{send}{BrowserVizClass}(obj, msg)
 \S4method{browserResponseReady}{BrowserVizClass}(obj)
 \S4method{getBrowserResponse}{BrowserVizClass}(obj)
 \S4method{getBrowserInfo}{BrowserVizClass}(obj)
-\S4method{close}{BrowserVizClass}(obj)
+\S4method{closeWebSocket}{BrowserVizClass}(obj)
 \S4method{port}{BrowserVizClass}(obj)
-\S4method{getWindowTitle}{BrowserVizClass}(obj)
-\S4method{setWindowTitle}{BrowserVizClass}(obj, newTitle, proclaim=FALSE)
-\S4method{getWindowSize}{BrowserVizClass}(obj)
+\S4method{getBrowserWindowTitle}{BrowserVizClass}(obj)
+\S4method{setBrowserWindowTitle}{BrowserVizClass}(obj, newTitle, proclaim=FALSE)
+\S4method{getBrowserWindowSize}{BrowserVizClass}(obj)
 }
 
 
@@ -104,7 +110,7 @@ BrowserViz(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserF
   browserFile, containing HTML, Javascript, CSS, and calls to powerful
   Javascript libraries (i.e., jQuery, d3, cytoscape.js).
   \code{viz.html} provides Javascript endpoints of, for instance, the
-  \code{getWindowTitle} and \code{setWindowTitle} class methods
+  \code{getBrowserWindowTitle} and \code{setBrowserWindowTitle} class methods
   described above.}
 
   \item{msg}{A name list, with four required slots: "cmd", "status",
@@ -114,6 +120,21 @@ BrowserViz(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserF
 
   \item{proclaim}{Logical, default FALSE; if TRUE will add newTitle to the web page's
   body, providing vivid evidence of R controlling the browser.}
+
+  \item{key}{A character string, the "cmd" field of the incoming
+    four-field JSON command, used to dispatch on, so that the
+    proper function is called.}
+
+  \item{functionName}{A character string: the name of a function to
+    which incoming web socket json commands can be dispatched.}
+
+  \item{auto_unbox}{Logical, default TRUE; unboxing: do not coerce a
+    scalar into a 1-element list, as the new (2015) jsonlite package
+    prefers to do.}
+
+  \item{\dots}{Arguments for our local, very slightly reddfined version of
+  toJSON.}
+
 
 
 }
@@ -163,26 +184,29 @@ BrowserViz(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserF
 
       }
     \item{}{
-      \code{close(obj)}:  Close the websocket port now in use, making it
+      \code{closeWebSocket(obj)}:  Close the websocket port now in use, making it
     available for reuse.
       }      
 
     \item{}{
-      \code{getWindowTitle(obj)}:  Returns the title of the web page (or
+      \code{getBrowserWindowTitle(obj)}:  Returns the title of the web page (or
       tab).
       }
     
     \item{}{
-      \code{setWindowTitle(obj, newTitle, proclaim=FALSE)}:  Sets the
+      \code{setBrowserWindowTitle(obj, newTitle, proclaim=FALSE)}:  Sets the
       title of the web page or tab to which we are currently connected.
       The "proclaim" argument is for demonstration purposes only, illustrating
       to new users that the web page can be interactively manipulated from R.
        }
 
     \item{}{
-      \code{getWindowSize(object)}: in pixels.
+      \code{getBrowserWindowSize(object)}: in pixels.
       }
     
+    \item{\dots}{Further arguments for \code{toJSON}, typically just the
+    variable to be encoded.}
+
   }
 }
 
@@ -201,7 +225,7 @@ BrowserViz(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserF
 
   ## illustrate a "low level" call.  This detail is usually hidden from
   ## the user, implemented and contained (in the case of this example)
-  ## in a getWindowTitle(bv) method call.  This level of detail
+  ## in a getBrowserWindowTitle(bv) method call.  This level of detail
   ## reveals what goes on behind the scenes.
 
   msg <- list(cmd="getWindowTitle", status="request", callback="handleResponse", payload="")
@@ -210,21 +234,20 @@ BrowserViz(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserF
   getBrowserResponse(bv)
 
   ## a simpler user-level approach:
-  getWindowTitle(bv)
+  getBrowserWindowTitle(bv)
 
   ## set and get the windowTitle
-  setWindowTitle(bv, "new title", proclaim=TRUE)
-  getWindowTitle(bv)
+  setBrowserWindowTitle(bv, "new title", proclaim=TRUE)
+  getBrowserWindowTitle(bv)
 
   ## BrowserViz provides another information method which, like the others, will apply
   ## and maybe be of some use to derived classes 
-  getWindowSize(bv)
+  getBrowserWindowSize(bv)
 
   ## finally, you should close BrowserViz when you are done, returning
   ## the port for use by other applications.
-  close(bv)
+  closeWebSocket(bv)
 }
-
 
 
 \keyword{classes}

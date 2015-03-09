@@ -97,7 +97,7 @@ a simple, adaptable data structure flexible enough for all of the uses so far en
 JSON (and Javascript):
 
 \begin{verbatim}
-    {{cmd: "setWindowTitle", status: "request", callback:"handleResponse", 
+    {{cmd: "setBrowserWindowTitle", status: "request", callback:"handleResponse", 
       payload: "BrowserViz Demo"}}
 \end{verbatim}
 
@@ -117,7 +117,7 @@ with sending a message from one environment to the other, and often concludes wi
 
 <<RJSON>>=
   library(jsonlite)
-  msg <- toJSON(list(cmd="setWindowTitle", status="request", 
+  msg <- toJSON(list(cmd="setBrowserWindowTitle", status="request", 
                      callback="handleResponse", payload="BrowserViz demo"))
 @ 
 
@@ -153,11 +153,11 @@ they be, are automatically available to all \Biocpkg{BrowserViz} subclasses.
    \item \emph{ready}:
    \item \emph{browserResponseReady}:
    \item \emph{getBrowserResponse}:
-   \item \emph{close}:
+   \item \emph{closeWebSocket}:
    \item \emph{send}:
-   \item \emph{getWindowSize}:
-   \item \emph{getWindowTitle}:
-   \item \emph{setWindowTitle}:
+   \item \emph{getBrowserWindowSize}:
+   \item \emph{getBrowserWindowTitle}:
+   \item \emph{setBrowserWindowTitle}:
 \end{itemize}
 
 This describes the R component of the package.  It is complemented by an HTML/Javascript/CSS component;
