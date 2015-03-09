@@ -68,7 +68,7 @@ setGeneric('getBrowserInfo',          signature='obj', function(obj) standardGen
 setGeneric('send',                    signature='obj', function(obj, msg) standardGeneric('send'))
 setGeneric('browserResponseReady',    signature='obj', function(obj) standardGeneric('browserResponseReady'))
 setGeneric('getBrowserResponse',      signature='obj', function(obj) standardGeneric('getBrowserResponse'))
-setGeneric('close',                   signature='obj', function(obj) standardGeneric('close'))
+setGeneric('close',                   signature=c('con', '...'), function(con, ...) standardGeneric('close'))
 setGeneric('getWindowTitle',          signature='obj', function(obj) standardGeneric('getWindowTitle'))
 setGeneric('setWindowTitle',          signature='obj', function(obj, newTitle, proclaim=FALSE)
                                                                      standardGeneric('setWindowTitle'))
