@@ -24,4 +24,4 @@ importFrom(methods, new)
 
 import(BiocGenerics)
 import(httpuv)
-import(jsonlite)
+importFrom(jsonlite, fromJSON, toJSON)

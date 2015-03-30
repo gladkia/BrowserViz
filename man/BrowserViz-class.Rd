@@ -134,9 +134,6 @@ addRMessageHandler(key, functionName)
 
   \item{\dots}{Arguments for our local, very slightly reddfined version of
   toJSON.}
-
-
-
 }
 
 \section{Methods}{
