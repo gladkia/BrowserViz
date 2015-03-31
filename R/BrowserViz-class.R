@@ -100,12 +100,25 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
 
   uri = sprintf("http://%s:%s", host, actualPort)
 
-  browseURL(uri, browser=.getBrowser())
-
-  if(!quiet)
-      message(sprintf("BrowserViz constructor connecting with html file '%s'  (exists? %s), ",
-                      browserFile, file.exists(browserFile)))
+  if(!quiet){
+     message(sprintf("BrowserViz constructor starting with html file '%s'", browserFile))
+     message(sprintf(" html file exists? %s", file.exists(browserFile)))
+     }
+              
   stopifnot(file.exists(browserFile))
+
+  if(!quiet){
+     message(sprintf("summoning default browser to get %s", uri))
+     }
+
+  browseURL(uri, browser=.getBrowser())
+  #uri = sprintf("http://%s:%s", host, actualPort)
+  #  browseURL(uri, browser=.getBrowser())
+  #if(!quiet)
+  #    message(sprintf("BrowserViz constructor connecting with html file '%s'  (exists? %s), ",
+  #                    browserFile, file.exists(browserFile)))
+  #stopifnot(file.exists(browserFile))
+
   wsCon <- .setupWebSocketHandlers(wsCon, browserFile)
 
   wsCon$wsID <- result$wsID
