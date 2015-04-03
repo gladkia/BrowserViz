@@ -74,7 +74,7 @@ to learn -- both R and Javascript.
 Standalone web sites can be created, but the primary intended audience for this package
 is the R programmmer exploring and analyzing data in R and using the browser visualization for the 
 indispensable benefits it provides.  We hope that many visualization tools will be created.  We provide
-a simple x-y plotter (see \Biocpkg{BrowserPlot2D}) to illustrate how to write a BrowserViz subclass
+a simple x-y plotter (see \Biocpkg{BrowserVizDemo}) to illustrate how to write a BrowserViz subclass
 application.  The \Biocpkg{RCyjs}  is a full-featured visualization tool for network visualization built
 upon \emph{cytoscape.js} (see \url{http://js.cytoscape.org}).
 and the web browser.  
@@ -162,15 +162,16 @@ they be, are automatically available to all \Biocpkg{BrowserViz} subclasses.
 
 This describes the R component of the package.  It is complemented by an HTML/Javascript/CSS component;
 call it the ``web component''.   In simple visualizations this web component is a single file whose
-name is provided to the BrowserViz constructor.  We depend upon the \Biocpkg{httpuv} package which
-functions primarily as a websocket server, but also includes a simple http web server.  Once the
-web socket is created and opened by \Biocpkg{BrowserViz}, the constructor asks the default 
-web browser to display the web component html page.  Javascript in this page then opens a connection
-back to the \Biocpkg{BrowserViz} web socket server, and the application is ready to go.
+name is provided to the BrowserViz constructor.  We depend upon the \Biocpkg{httpuv} package: it
+functions primarily as a websocket server, but also includes (and starts up as) a simple http web server.  
+Once the web socket is created and opened by \Biocpkg{BrowserViz}, the constructor asks the default 
+web browser to display the web component's html page.  Javascript in this page then opens a connection
+back to the \Biocpkg{BrowserViz} web socket server, and the application is ready to go, driven
+by user events -- either function calls in R, or mouse and keyboard events in the browser.
 
 \section{Simple Subclassing Overview}
 
-The \Biocpkg{BrowserPlot2D} package shows how to build upon \Biocpkg{BrowserViz}.  \Biocpkg{BrowserPlot2D} 
+The \Biocpkg{BrowserVizDemo} package shows how to build upon \Biocpkg{BrowserViz}.  \Biocpkg{BrowserVizDemo} 
 is an S4 class; its Javascript component uses the \emph{d3} graphics library to 
 render x,y points onto an auto-scaled canvas with labeled axes.  The class  \emph{contains} 
 \Biocpkg{BrowserViz} and thus has all of the above operations, and these in addition
@@ -183,7 +184,39 @@ render x,y points onto an auto-scaled canvas with labeled axes.  The class  \emp
 Thus the R programming is quite simple.
 
 Neither Javascript nor HTML provide any native mechanism for class inheritance.  So in order to create
-the web component of a new visualization application, there is unfortunately no alternative to copying the 
+the web component of a new visualization application, we provide a simple Javascript module, \emph{BrowserViz.js}
+available (for now; a better location will be found) at 
+
+  \url{http://oncoscape.sttrcancer.org/oncoscape/js/BrowserViz.js}
+  
+and can be used in your customized web (Javascript, HTML, CSS) file/s like this (see \Biocpkg{BrowserVizDemo} for the full story).
+
+\begin{verbatim}
+
+   hub = BrowserViz();
+   bvDemo = BrowserVizDemo()      // create your own Javascript module object
+   bvDemo.init(hub);              // initialization of your webapp
+   hub.addOnDocumentReadyFunction(bvDemo.initializUI);  // register functions the hub will call
+
+      // register your web apps message handlers: the hub will 
+      // dispatch incoming messages to these 
+   hub.addMessageHandler("ready", ready)   
+   hub.addMessageHandler("plotxy", d3plotPrep)
+   hub.addMessageHandler("getSelection", getSelection)
+
+      // with all setup complete, now
+   hub.init();                    // socket connections setup
+   hub.start();                   // and started
+
+      // your handlers (locally defined functions which do things in the browser)
+      // will sometimes (or often) send a response back to R
+      // the hub make that easy
+      // first, build up your four-field JSON message, then
+   hub.send(return_msg);
+  
+\end{verbatim}
+
+there is unfortunately no alternative to copying the 
 \Biocpkg{BrowserViz} \emph{inst/scripts/viz.html} file into your new package's \emph{inst/scripts} 
 directory, preserving everything that is of use, then adding your own HTML markup, CSS, Javascript
 and probably jQuery, Boostrap and d3.
