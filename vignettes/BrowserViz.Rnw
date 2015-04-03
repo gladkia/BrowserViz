@@ -189,17 +189,18 @@ available (for now; a better location will be found) at
 
   \url{http://oncoscape.sttrcancer.org/oncoscape/js/BrowserViz.js}
   
-and can be used in your customized web (Javascript, HTML, CSS) file/s like this (see \Biocpkg{BrowserVizDemo} for the full story).
+It simplifies your Javascript coding significantly.  It is used in your webapp (Javascript, HTML, CSS file/s) 
+like this (see \Biocpkg{BrowserVizDemo} for the full story).
 
 \begin{verbatim}
 
-   hub = BrowserViz();
+   hub = BrowserViz();            // create an instance of the BrowserViz hub
    bvDemo = BrowserVizDemo()      // create your own Javascript module object
-   bvDemo.init(hub);              // initialization of your webapp
-   hub.addOnDocumentReadyFunction(bvDemo.initializUI);  // register functions the hub will call
+   bvDemo.init(hub);              // initialization of your module
+   hub.addOnDocumentReadyFunction(bvDemo.initializUI);  // register functions for the hub to call
 
-      // register your web apps message handlers: the hub will 
-      // dispatch incoming messages to these 
+      // register your web apps message handlers: the hub will dispatch 
+      // incoming messages to these, based on the "cmd" field in the JSON message
    hub.addMessageHandler("ready", ready)   
    hub.addMessageHandler("plotxy", d3plotPrep)
    hub.addMessageHandler("getSelection", getSelection)
@@ -210,7 +211,7 @@ and can be used in your customized web (Javascript, HTML, CSS) file/s like this 
 
       // your handlers (locally defined functions which do things in the browser)
       // will sometimes (or often) send a response back to R
-      // the hub make that easy
+      // the hub makes that easy.
       // first, build up your four-field JSON message, then
    hub.send(return_msg);
   
