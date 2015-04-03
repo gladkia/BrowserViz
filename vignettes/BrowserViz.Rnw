@@ -217,10 +217,8 @@ like this (see \Biocpkg{BrowserVizDemo} for the full story).
   
 \end{verbatim}
 
-there is unfortunately no alternative to copying the 
-\Biocpkg{BrowserViz} \emph{inst/scripts/viz.html} file into your new package's \emph{inst/scripts} 
-directory, preserving everything that is of use, then adding your own HTML markup, CSS, Javascript
-and probably jQuery, Boostrap and d3.
+A close study of the \Biocpkg{BrowserVizDemo} will give you a good start towards 
+creating your own custom webapp and BrowserViz subclass.
 
 
 \end{document}
