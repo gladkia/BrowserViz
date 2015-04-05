@@ -1,14 +1,39 @@
 //----------------------------------------------------------------------------------------------------
 // These javascript functions and variables are arranged into a simple module so that
-// implementation details are kept private from the public API
-// common services and utility functions are provided here
+// implementation details are kept separate from the public API.
+// common services and utility functions are provided here:
+//
+// -- socket creation and initialization
+//    a websocket is created here which "points back" to the server which loads the web page
+//    in which this script is contained.   this presumes, as is the case with the R httpuv
+//    server used in the BrowserViz R base class, that the websocket server
+//      a) begins life as an http server, serving up an initial web page (containing this script)
+//      b) then promotes itself from the http:// protocol to the ws:// protocol, after which
+//      c) it listens for incoming websocket JSON messages
+//
+// -- a registry and lookup up service ("dispatchOptions") which dispatches incoming
+//    JSON messages to functions registered to handle them
+//
+// -- the means to register functions to be called when the web page (the one which includes the script)
+//    is completely loaded and ready.
+//
+// -- the means to register functions to be called when the socket connection is open and fully
+//    functioning.   for instance, you don't want to run any javascript functions which make
+//    websocket requests on the server until the socket is ready
+//
+// -- a send function, hiding a few details of the socket.send function
+//
+// -- some very simple browser window operations
+//    getBrowserInfo, getWindowTitle, setWindowTitle, getWindowSize
+//
+// 
 //----------------------------------------------------------------------------------------------------
 var BrowserViz = (function () {
 
+  var onDocumentReadyFunctions = [];
   var name = "BrowserViz";
   var dispatchOptions = {};
   var socketConnectedFunctions = [];
-  var onDocumentReadyFunctions = [];
   var socketURI = window.location.href.replace("http://", "ws://");
 
   var socket;
@@ -23,7 +48,7 @@ function setupSocket(socket)
            console.log("calling the next sockectConnectedFunction");
            socketConnectedFunctions[f]();
            } // for f
-        } // socked.onopen
+        } // socket.onopen
 
      socket.onmessage = function got_packet(msg) {
         console.log("=== browserViz.js, socket.onmessage");
@@ -56,9 +81,29 @@ function getSocketConnectedFunctions()
 
 } // getSocketConnectedFunction
 //----------------------------------------------------------------------------------------------------
+function setupBasicMessageHandlers()
+{
+  addMessageHandler("ready", ready)   
+  addMessageHandler("getBrowserInfo", getBrowserInfo)
+  addMessageHandler("getWindowTitle", getWindowTitle)   
+  addMessageHandler("setWindowTitle", setWindowTitle)   
+  addMessageHandler("getWindowSize",  getWindowSize)
+
+} // setupBasicMessageHandlers
+//----------------------------------------------------------------------------------------------------
 function addOnDocumentReadyFunction(func)
 {
+   console.log("== localhost addOnDocumentReadyFunction");
+   console.log("   typeof(func): " + typeof(func));
+   console.log(func);
+
    onDocumentReadyFunctions.push(func)
+
+   console.log("== after push, count: " + onDocumentReadyFunctions.length);
+   console.log(func);
+   console.log("func, stored");
+   console.log(onDocumentReadyFunctions[0]);
+
 
 } // addOnDocumentReadyFunction
 //----------------------------------------------------------------------------------------------------
@@ -73,7 +118,7 @@ function runOnDocumentReadyFunctions()
   var funcs = getOnDocumentReadyFunctions()
 
   for (var f = 0; f < funcs.length; f++) {
-     console.log("calling on ready function");
+     console.log("local BrowserViz, calling on ready function");
      funcs[f]();
      }
 
@@ -105,11 +150,11 @@ function addMessageHandler(cmd, func)
   
 } // addMessageHandler
 //----------------------------------------------------------------------------------------------------
-function getRegisteredMessageNames()
+function getRegisteredHandlers()
 {
    return(Object.keys(dispatchOptions));
   
-} // getRegisteredMessageNames
+} // getRegisteredHandlers
 //----------------------------------------------------------------------------------------------------
 function dispatchMessage(msg)
 {
@@ -133,13 +178,6 @@ function dispatchMessage(msg)
 //----------------------------------------------------------------------------------------------------
 function send(msg)
 {
-   //var cmd = JSON.parse(msg).cmd;
-   //var browserLocalCommand = Object.keys(dispatchOptions).indexOf(cmd) >= 0;
-
-   //if(browserLocalCommand)
-   //   dispatchMessage(JSON.parse(msg));
-   //else
-
    console.log("=== browserViz: send, msg");
    console.log(msg);
 
@@ -160,23 +198,10 @@ function intersectionOfArrays(a, b)
 
 } // intersectionOfArrays
 //----------------------------------------------------------------------------------------------------
-function init()
-{
-  addMessageHandler("ready", ready)   
-  addMessageHandler("getBrowserInfo", getBrowserInfo)
-  addMessageHandler("getWindowTitle", getWindowTitle)   
-  addMessageHandler("setWindowTitle", setWindowTitle)   
-  addMessageHandler("getWindowSize",  getWindowSize)
-
-  console.log("=== finishing bv.init");   
-
-} // init
-//----------------------------------------------------------------------------------------------------
 function start()
 {
   console.log("=== starting bv.start");   
   $(document).ready(runOnDocumentReadyFunctions);
-  initializeWebSocket();
   console.log("=== starting bv.start");   
 
 }  // start
@@ -233,21 +258,22 @@ function getWindowSize(msg)
 } // getWindowSize
 //----------------------------------------------------------------------------------------------------
 
+  setupBasicMessageHandlers();
+  initializeWebSocket();
+
   return({
     getName: function() {return(name)},
     addSocketConnectedFunction: addSocketConnectedFunction,
     getSocketConnectedFunctions: getSocketConnectedFunctions,
     addOnDocumentReadyFunction: addOnDocumentReadyFunction,
     getOnDocumentReadyFunctions: getOnDocumentReadyFunctions,
-    initializeWebSocket: initializeWebSocket,
     getSocket: getSocket,
     addMessageHandler: addMessageHandler,
-    getRegisteredMessageNames: getRegisteredMessageNames,
+    getRegisteredHandlers: getRegisteredHandlers,
     dispatchMessage: dispatchMessage,
     intersectionOfArrays: intersectionOfArrays,
     send: send,
     setTitle: setTitle,
-    init: init,
     start: start
     });
 
