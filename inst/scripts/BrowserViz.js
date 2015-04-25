@@ -43,7 +43,7 @@ function setupSocket(socket)
 {
   try {
      socket.onopen = function() {
-        console.log("websocket connection now open");
+        console.log("=== BrowserViz.js, websocket connection now open.");
         for(var f=0; f < socketConnectedFunctions.length; f++){
            console.log("calling the next sockectConnectedFunction");
            socketConnectedFunctions[f]();
@@ -52,7 +52,7 @@ function setupSocket(socket)
 
      socket.onmessage = function got_packet(msg) {
         var msg = JSON.parse(msg.data)
-        console.log("=== BrowserViz.js, socket.onmessage: " + msg.cmd);
+        console.log("=== BrowserViz.js, message received: " + msg.cmd);
         dispatchMessage(msg)
         } // socket.onmessage, got_packet
 
@@ -176,8 +176,7 @@ function dispatchMessage(msg)
 //----------------------------------------------------------------------------------------------------
 function send(msg)
 {
-   console.log("=== browserViz: send, msg");
-   console.log(msg);
+   console.log("=== BrowserViz send: " + msg.cmd);
 
    socket.send(JSON.stringify(msg));
 
