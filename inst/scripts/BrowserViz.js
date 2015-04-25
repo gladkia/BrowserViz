@@ -51,9 +51,8 @@ function setupSocket(socket)
         } // socket.onopen
 
      socket.onmessage = function got_packet(msg) {
-        console.log("=== browserViz.js, socket.onmessage");
         var msg = JSON.parse(msg.data)
-        console.log(msg);
+        console.log("=== BrowserViz.js, socket.onmessage: " + msg.cmd);
         dispatchMessage(msg)
         } // socket.onmessage, got_packet
 
@@ -158,9 +157,8 @@ function getRegisteredHandlers()
 //----------------------------------------------------------------------------------------------------
 function dispatchMessage(msg)
 {
-   console.log("=== browserViz.js, dispatchMessage: ");
-   console.log(msg);
    var cmd = msg.cmd;
+   console.log("=== BrowserViz.js, dispatchMessage: " + cmd);
    var status = msg.status;
 
    if(Object.keys(dispatchOptions).indexOf(cmd) == -1){

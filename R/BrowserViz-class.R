@@ -337,6 +337,7 @@ dispatchMessage <- function(ws, msg)
 setMethod('send', 'BrowserVizClass',
 
     function(obj, msg) {
+      message(sprintf("BrowserViz::send '%s'", msg$cmd));
       status$result <- NULL
       obj@websocketConnection$ws$send(toJSON(msg))
       })
