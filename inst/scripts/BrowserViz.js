@@ -94,15 +94,14 @@ function addOnDocumentReadyFunction(func)
 {
    console.log("== localhost addOnDocumentReadyFunction");
    console.log("   typeof(func): " + typeof(func));
-   console.log(func);
+   //console.log(func);
 
    onDocumentReadyFunctions.push(func)
 
    console.log("== after push, count: " + onDocumentReadyFunctions.length);
    console.log(func);
-   console.log("func, stored");
-   console.log(onDocumentReadyFunctions[0]);
-
+   //console.log("func, stored");
+   //console.log(onDocumentReadyFunctions[0]);
 
 } // addOnDocumentReadyFunction
 //----------------------------------------------------------------------------------------------------

@@ -8,7 +8,8 @@
         getOption("browser")
 }
 
-
+#----------------------------------------------------------------------------------------------------
+BrowserViz.state <- new.env(parent=emptyenv())
 #----------------------------------------------------------------------------------------------------
 # the semanitcs of toJSON changed between RJSONIO and jsonlite: in the latter, scalars are
 # promoted to arrays of length 1.  rather than change our javascript code, and since such
@@ -84,7 +85,13 @@ setupMessageHandlers <- function()
 # by the minimal http server offered by httpuv, after which websocket messages are
 # exchanged.  the default browserFile, viz.html, does not do much, but is copied and
 # extended by BrowserViz subclassing applcations
-BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserFile=NA)
+# the optional sixth argument, httpQueryProcessingFunction, provides subclasses with the
+# opportunity to execute code on the http server created here.  one case of this is
+# the BrowserTable class, which uses http in an ajax-ish way to pass pages of a possibly
+# very large data.frame to the browser for incremental display.
+#
+BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserFile=NA,
+                      httpQueryProcessingFunction=NULL)
 {
   if(is.na(browserFile))
      browserFile <- browserVizBrowserFile
@@ -112,12 +119,6 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
      }
 
   browseURL(uri, browser=.getBrowser())
-  #uri = sprintf("http://%s:%s", host, actualPort)
-  #  browseURL(uri, browser=.getBrowser())
-  #if(!quiet)
-  #    message(sprintf("BrowserViz constructor connecting with html file '%s'  (exists? %s), ",
-  #                    browserFile, file.exists(browserFile)))
-  #stopifnot(file.exists(browserFile))
 
   wsCon <- .setupWebSocketHandlers(wsCon, browserFile)
 
@@ -129,6 +130,9 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
   setupMessageHandlers()
 
   obj <- .BrowserViz(uri=uri, websocketConnection=wsCon, port=actualPort, quiet=quiet)
+
+  BrowserViz.state[["httpQueryProcessingFunction"]] <- httpQueryProcessingFunction
+                     
 
   totalWait <- 0.0
   
@@ -260,11 +264,22 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
 .setupWebSocketHandlers <- function(wsCon, browserFile)
 {
    wsCon$open <- FALSE
-   #wsCon$wsID <- NULL
    wsCon$ws <- NULL
    wsCon$result <- NULL
      # process http requests
    wsCon$call = function(req) {
+      qs <- req$QUERY_STRING
+      if(nchar(qs) > 0){
+         #return(.processQuery(qs))
+         #printf("bv$call, about to call dynamically assigned queryProcessor");
+         queryProcessorFunction <- BrowserViz.state[["httpQueryProcessingFunction"]]
+         if(!is.null(queryProcessorFunction))
+           body <- queryProcessorFunction(qs)
+         else
+           body <- "no query processor registered"
+         return(list(status=200L, headers = list('Content-Type' = 'text/html'),
+                     body=body))
+         } # the request had a query string
       wsUrl = paste(sep='', '"', "ws://",
                    ifelse(is.null(req$HTTP_HOST), req$SERVER_NAME, req$HTTP_HOST),
                    '"')
@@ -337,7 +352,6 @@ dispatchMessage <- function(ws, msg)
 setMethod('send', 'BrowserVizClass',
 
     function(obj, msg) {
-      message(sprintf("BrowserViz::send '%s'", msg$cmd));
       status$result <- NULL
       obj@websocketConnection$ws$send(toJSON(msg))
       })
@@ -402,4 +416,14 @@ handleResponse <- function(ws, msg)
    
 } # handleResponse
 #----------------------------------------------------------------------------------------------------
+#.processQuery <- function(queryString)
+#{
+#
+#  list(status=200L, headers = list('Content-Type' = 'text/html'),
+#       body="hello from bv.processQuery, dynamically assigned")
+#
+#} # .processQuery
+##----------------------------------------------------------------------------------------------------
+#queryProcessor <- .processQuery
+
 
