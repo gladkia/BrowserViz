@@ -135,9 +135,11 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
                      
 
   totalWait <- 0.0
+  maxWaitPermitted <- 10.0
   
   while (!ready(obj)){
      totalWait <- totalWait + sleepTime
+     stopifnot(totalWait < maxWaitPermitted)
      if(!obj@quiet)
         message(sprintf ("BrowserViz websocket not ready, waiting %6.2f seconds", sleepTime));
      Sys.sleep(sleepTime)
@@ -353,7 +355,12 @@ setMethod('send', 'BrowserVizClass',
 
     function(obj, msg) {
       status$result <- NULL
+      #printf("bv.send, nchar(str(msg)): %d", nchar(str(msg)));
+      #printf("bv.send, nchar(msg$payload): %d", nchar(msg$payload))
+      msg.json <- toJSON(msg)
+      #printf("bv.send, nchar(msg.json): %d", nchar(str(msg.json)))
       obj@websocketConnection$ws$send(toJSON(msg))
+      #printf("obj@websocketConnection$ws$send(toJSON(msg)) complete");
       })
 
 #--------------------------------------------------------------------------------
