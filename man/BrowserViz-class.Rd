@@ -64,7 +64,8 @@
 
 \usage{
 % functions first, starting with the class constructor
-BrowserViz(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserFile=NA)
+BrowserViz(portRange, host="localhost", title="BrowserViz", quiet=TRUE,
+browserFile=NA, httpQueryProcessingFunction=NULL)
 toJSON(..., auto_unbox=TRUE)
 addRMessageHandler(key, functionName)
 
@@ -113,6 +114,12 @@ addRMessageHandler(key, functionName)
   \code{getBrowserWindowTitle} and \code{setBrowserWindowTitle} class methods
   described above.}
 
+  \item{httpQueryProcessingFunction}{defaults to \code{NULL}.  When not
+  \code{NULL} this function, supplied by the subclass, is called
+  whenever an HTTP (as opposed to a websocket) request arrives.  Thus
+  the BrowserViz subclass can transfer data to the web browser using a
+  traditional HTTP GET when that is advantageous.}
+
   \item{msg}{A name list, with four required slots: "cmd", "status",
   "callback", "payload".  See below.}
 
@@ -141,7 +148,8 @@ addRMessageHandler(key, functionName)
   \describe{
 
     \item{}{
-      \code{BrowserViz(portRange,  host="localhost", title="BrowserViz", quiet=TRUE, browserFile=NA)}:
+      \code{BrowserViz(portRange,  host="localhost", title="BrowserViz",
+      quiet=TRUE, browserFile=NA, httpQueryProcessingFunction=NULL)}:
         Constructs a BrowserViz object.  Among the several actions
         included are:  your default webrowser browses to the uri of a minimal
         http server embedded in BrowserViz; the \code{browserFile} is returned
