@@ -232,9 +232,9 @@ setMethod('ready', 'BrowserVizClass',
 
   function (obj) {
 
-     printf("entering BrowserViz ready");
      if(!is.environment(obj@websocketConnection))
         return(FALSE)
+
      if(!obj@websocketConnection$open)
         return(FALSE)         
 
@@ -245,7 +245,7 @@ setMethod('ready', 'BrowserVizClass',
         Sys.sleep(.1)
         }
 
-     printf("browserResponseReady now true");
+     # printf("browserResponseReady now true");
      getBrowserResponse(obj);
 
      return(TRUE);
