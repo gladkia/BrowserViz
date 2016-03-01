@@ -2,11 +2,7 @@
 <html>
 <head>
    <title>BrowserViz</title>
-   <script src="http://oncoscape.sttrcancer.org/oncoscape/js/jquery-2.1.1.js"></script>
-   <script src="http://oncoscape.sttrcancer.org/oncoscape/js/jquery-ui-1.11.2.min.js"></script>
-   <link   rel="stylesheet" href="http://oncoscape.sttrcancer.org/oncoscape/css/jquery-ui-1.11.2.css">
-
-
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 <style>
 
 .center {
@@ -55,7 +51,7 @@ function send(msg)
 {
    console.log("about to websocket.send cmd: " + msg.cmd);
    websocket.send(JSON.stringify(msg));
-   
+
 }  // send
 //--------------------------------------------------------------------------------
 function handleWindowResize ()
@@ -83,7 +79,7 @@ dispatchMessage = function(msg)
        dispatchOptions[msg.cmd](msg)
    else
       console.log("unrecognized socket request: " + msg.cmd);
-} 
+}
 //--------------------------------------------------------------------------------------------------
 function ready(msg)
 {
@@ -127,7 +123,7 @@ function getWindowSize(msg)
 {
    var width = $(window).width()
    var height = $(window).height()
-   return_msg = {cmd: msg.callback, status: "success", 
+   return_msg = {cmd: msg.callback, status: "success",
                  callback: "", payload: JSON.stringify({width:width, height: height})};
    send(return_msg);
 
@@ -136,10 +132,10 @@ function getWindowSize(msg)
 $(document).ready(function() {
 
    console.log("viz.html document ready");
-   addMessageHandler("ready", ready)   
+   addMessageHandler("ready", ready)
    addMessageHandler("getBrowserInfo", getBrowserInfo)
-   addMessageHandler("getWindowTitle", getWindowTitle)   
-   addMessageHandler("setWindowTitle", setWindowTitle)   
+   addMessageHandler("getWindowTitle", getWindowTitle)
+   addMessageHandler("setWindowTitle", setWindowTitle)
    addMessageHandler("getWindowSize",  getWindowSize)
 
    console.log("==== document ready");

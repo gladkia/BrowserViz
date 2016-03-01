@@ -137,7 +137,7 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
                      
 
   totalWait <- 0.0
-  maxWaitPermitted <- 10.0
+  maxWaitPermitted <- 1000.0
   
   while (!ready(obj)){
      totalWait <- totalWait + sleepTime
@@ -283,7 +283,12 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
    wsCon$call = function(req) {
       qs <- req$QUERY_STRING
       if(nchar(qs) > 0){
-         if(!quiet) printf("bv$call, about to call dynamically assigned queryProcessor");
+         if(!quiet) print("--- bv$call, about to call dynamically assigned queryProcessor");
+         fields <- ls(req)
+         for(field in fields){
+            printf("---- request field: %s", field)
+            print(req[[field]]);
+            }
          queryProcessorFunction <- BrowserViz.state[["httpQueryProcessingFunction"]]
          if(!is.null(queryProcessorFunction))
            body <- queryProcessorFunction(qs)
@@ -304,10 +309,10 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
       # called whenever a websocket connection is opened
    wsCon$onWSOpen = function(ws) {   
       if(!quiet)
-         printf("BrowserViz..setupWebSocketHandlers, wsCon$onWSOpen");
+         print("BrowserViz..setupWebSocketHandlers, wsCon$onWSOpen");
       wsCon$ws <- ws
       ws$onMessage(function(binary, rawMessage) {
-         if(!quiet) printf("BrowserViz..setupWebSocketHandlers, onMessage ");
+         if(!quiet) print("BrowserViz..setupWebSocketHandlers, onMessage ");
          message <- as.list(fromJSON(rawMessage))
          wsCon$lastMessage <- message
          if(!is(message, "list")){

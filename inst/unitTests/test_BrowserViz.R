@@ -1,7 +1,7 @@
 library(RUnit)
 library(BrowserViz)
 #--------------------------------------------------------------------------------
-PORT_RANGE = 7200:7220
+PORT_RANGE = 7300:7320
 #--------------------------------------------------------------------------------
 runTests <- function()
 {
@@ -11,7 +11,7 @@ runTests <- function()
   testWindowTitle();
   testGetWindowSize();
   testRunOutOfPorts();
-  
+
 } # runTests
 #--------------------------------------------------------------------------------
 testConstructor <- function()
@@ -22,7 +22,7 @@ testConstructor <- function()
    checkTrue(port(app) %in% PORT_RANGE)
    closeWebSocket(app)
    checkTrue(!ready(app))
-   
+
 } # testConstructor
 #--------------------------------------------------------------------------------
 testGetBrowserInfo <- function()
@@ -34,7 +34,7 @@ testGetBrowserInfo <- function()
    checkEquals(typeof(userAgent), "character")
    checkTrue(nchar(userAgent) > 5);  # 120 on chrome 40.0.2214.115 (27 feb 2015)
    closeWebSocket(app)
-   
+
 } # testGetBrowserInfo
 #--------------------------------------------------------------------------------
 testMultipleOpenCloseOnSamePort <- function()
@@ -42,7 +42,7 @@ testMultipleOpenCloseOnSamePort <- function()
    print("--- testMultipleOpenCloseOnSamePort")
 
    max <- 3
-   
+
    for(i in 1:max){
      app <- BrowserViz(PORT_RANGE[1]);
      checkTrue(ready(app))
@@ -53,7 +53,7 @@ testMultipleOpenCloseOnSamePort <- function()
      #printf("app instance #%d closed", i)
      } # for i
 
-   
+
 } # testMultipleOpenCloseOnSamePort
 #--------------------------------------------------------------------------------
 testWindowTitle <- function()
@@ -97,7 +97,7 @@ testRunOutOfPorts <- function()
    portRange <- PORT_RANGE[1]:(PORT_RANGE[1]+1)
    apps <- lapply(rep("BrowserVizClass", max), new)
 
-   boundToFail <- function(max, portRange){ 
+   boundToFail <- function(max, portRange){
       for(i in 1:max){
          app <- BrowserViz(portRange);
          apps[[i]] <- app
@@ -122,6 +122,6 @@ testRunOutOfPorts <- function()
            }# if ready
         } # if port(app) has meaningful value
      } # for i
-   
+
 } # testRunOutOfPorts
 #--------------------------------------------------------------------------------
