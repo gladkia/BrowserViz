@@ -53,7 +53,7 @@ status$result <- NULL
 sleepTime <- 0.1
 
 #----------------------------------------------------------------------------------------------------
-.BrowserViz <- setClass ("BrowserVizClass", 
+.BrowserViz <- setClass ("BrowserVizClass",
                          representation = representation (
                                                uri="character",
                                                port="numeric",
@@ -97,7 +97,7 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
 {
   if(is.na(browserFile))
      browserFile <- browserVizBrowserFile
-  
+
   wsCon <- new.env(parent=emptyenv())
 
   result <- .startDaemonizedServerOnFirstAvailableLocalHostPort(portRange, wsCon)
@@ -105,7 +105,7 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
 
   if(is.null(actualPort))
     stop(sprintf("no available ports in range %d:%d", min(portRange), max(portRange)))
-                         
+
 
   uri = sprintf("http://%s:%s", host, actualPort)
 
@@ -113,7 +113,7 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
      message(sprintf("BrowserViz constructor starting with html file '%s'", browserFile))
      message(sprintf(" html file exists? %s", file.exists(browserFile)))
      }
-              
+
   stopifnot(file.exists(browserFile))
 
   if(!quiet){
@@ -134,11 +134,11 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
   obj <- .BrowserViz(uri=uri, websocketConnection=wsCon, port=actualPort, quiet=quiet)
 
   BrowserViz.state[["httpQueryProcessingFunction"]] <- httpQueryProcessingFunction
-                     
+
 
   totalWait <- 0.0
   maxWaitPermitted <- 1000.0
-  
+
   while (!ready(obj)){
      totalWait <- totalWait + sleepTime
      stopifnot(totalWait < maxWaitPermitted)
@@ -149,7 +149,7 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
 
   if(!obj@quiet)
      message(sprintf("BrowserViz websocket ready after %6.2f seconds", totalWait));
-  
+
   obj
 
 } # BrowserViz: constructor
@@ -169,7 +169,7 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
 
    port <- portRange[1]
    wsID <- NULL
-   
+
    while(!done){
      if(port > max(portRange))
         done <- TRUE
@@ -183,7 +183,7 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
      } # while
 
    actualPort <- NULL
-   
+
    if(.validWebSocketID(wsID))
       actualPort <- port
 
@@ -198,7 +198,7 @@ setMethod('show', 'BrowserVizClass',
      cat(msg, '\n', sep='')
      msg <- sprintf("ready? %s", ready(obj))
      cat(msg, '\n', sep='')
-     msg <- sprintf("port: %d", port(obj))     
+     msg <- sprintf("port: %d", port(obj))
      cat(msg, '\n', sep='')
      }) # show
 
@@ -232,22 +232,26 @@ setMethod('ready', 'BrowserVizClass',
 
   function (obj) {
 
+     sleepIntervalCount <- 0
+     sleepInterval <- 0.1
+
      if(!is.environment(obj@websocketConnection))
         return(FALSE)
 
      if(!obj@websocketConnection$open)
-        return(FALSE)         
+        return(FALSE)
 
      send(obj, list(cmd="ready", callback="handleResponse", status="request", payload=""))
 
      while (!browserResponseReady(obj)){
-        printf(" waiting in BrowserViz.redy, browserResponseReady not yet true");
-        Sys.sleep(.1)
+        printf("waiting in BrowserViz.ready, browserResponseReady not yet true");
+        Sys.sleep(sleepInterval)
+        sleepIntervalCount <- sleepIntervalCount + 1
         }
 
-     # printf("browserResponseReady now true");
+     printf("browserResponseReady now true, after %d sleepInterval/s of %f",
+            sleepIntervalCount, sleepInterval);
      getBrowserResponse(obj);
-
      return(TRUE);
      })
 
@@ -307,7 +311,7 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
        }
 
       # called whenever a websocket connection is opened
-   wsCon$onWSOpen = function(ws) {   
+   wsCon$onWSOpen = function(ws) {
       if(!quiet)
          print("BrowserViz..setupWebSocketHandlers, wsCon$onWSOpen");
       wsCon$ws <- ws
@@ -337,7 +341,7 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
 addRMessageHandler <- function(key, functionName)
 {
    dispatchMap[[key]] <- functionName
-    
+
 } # addRMessageHandler
 #---------------------------------------------------------------------------------------------------
 dispatchMessage <- function(ws, msg, quiet)
@@ -348,14 +352,14 @@ dispatchMessage <- function(ws, msg, quiet)
        }
 
    function.name <- dispatchMap[[msg$cmd]]
-   success <- TRUE   
+   success <- TRUE
 
    if(is.null(function.name)){
        message(sprintf("dispatchMessage error!  cmd ('%s') not recognized", msg$cmd))
        success <- FALSE
        return()
        }
-   
+
    tryCatch(func <- get(function.name), error=function(m) func <<- NULL)
 
    if(is.null(func)){
@@ -435,12 +439,12 @@ handleResponse <- function(ws, msg)
    if(msg$status == "success")
       status$result <- msg$payload
    else{
-     message(msg$payload)     
+     message(msg$payload)
      status$result <- NA
      }
 
    NULL
-   
+
 } # handleResponse
 #----------------------------------------------------------------------------------------------------
 #.processQuery <- function(queryString)
