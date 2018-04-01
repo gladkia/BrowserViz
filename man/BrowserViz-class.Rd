@@ -50,6 +50,14 @@
 \alias{ready,BrowserVizClass-method}
 \alias{\S4method{ready}{BrowserVizClass}}
 
+\alias{roundTripTest}
+\alias{roundTripTest,BrowserVizClass-method}
+\alias{\S4method{roundTripTest}{BrowserVizClass}}
+
+\alias{displayHTMLInDiv}
+\alias{displayHTMLInDiv,BrowserVizClass-method}
+\alias{\S4method{displayHTMLInDiv}{BrowserVizClass}}
+
 \alias{toJSON}
 \alias{addRMessageHandler}
 
@@ -64,8 +72,8 @@
 
 \usage{
 % functions first, starting with the class constructor
-BrowserViz(portRange, host="localhost", title="BrowserViz", quiet=TRUE,
-browserFile=NA, httpQueryProcessingFunction=NULL)
+BrowserViz(portRange=10000:10100, title="BrowserViz",
+           browserFile, quiet=TRUE, httpQueryProcessingFunction=NULL)
 toJSON(..., auto_unbox=TRUE)
 addRMessageHandler(key, functionName)
 
@@ -78,8 +86,10 @@ addRMessageHandler(key, functionName)
 \S4method{closeWebSocket}{BrowserVizClass}(obj)
 \S4method{port}{BrowserVizClass}(obj)
 \S4method{getBrowserWindowTitle}{BrowserVizClass}(obj)
-\S4method{setBrowserWindowTitle}{BrowserVizClass}(obj, newTitle, proclaim=FALSE)
+\S4method{setBrowserWindowTitle}{BrowserVizClass}(obj, newTitle)
 \S4method{getBrowserWindowSize}{BrowserVizClass}(obj)
+\S4method{roundTripTest}{BrowserVizClass}(obj, ...)
+\S4method{displayHTMLInDiv}{BrowserVizClass}(obj, htmlText, div.id)
 }
 
 
@@ -94,9 +104,6 @@ addRMessageHandler(key, functionName)
     a free port is found and the  connection to your web browser is
     established.  If no open ports are found in the supplied range,
     an error is reported.}
-
-  \item{host}{Nearly always left to its default value, "localhost" but
-  included as a parameter supporting remote computers for future flexibility.}
 
   \item{title}{The constructor creates a new window (or a new tab,
   depending on how you web browser is configured). This title is
@@ -125,8 +132,9 @@ addRMessageHandler(key, functionName)
 
   \item{newTitle}{A character string.}
 
-  \item{proclaim}{Logical, default FALSE; if TRUE will add newTitle to the web page's
-  body, providing vivid evidence of R controlling the browser.}
+  \item{htmlText}{A character string, i.e., "<h3>successful round trip of json-encoded data, length 48915.</h3>"}
+
+  \item{div.id}{A character string, i.e., "bvDemoDiv"}
 
   \item{key}{A character string, the "cmd" field of the incoming
     four-field JSON command, used to dispatch on, so that the
@@ -148,40 +156,40 @@ addRMessageHandler(key, functionName)
   \describe{
 
     \item{}{
-      \code{BrowserViz(portRange,  host="localhost", title="BrowserViz",
-      quiet=TRUE, browserFile=NA, httpQueryProcessingFunction=NULL)}:
+      \code{BrowserViz(portRange=10000:10100,  title="BrowserViz",
+        browserFile, quiet=TRUE, httpQueryProcessingFunction=NULL)}:
         Constructs a BrowserViz object.  Among the several actions
         included are:  your default webrowser browses to the uri of a minimal
         http server embedded in BrowserViz; the \code{browserFile} is returned
         to the browser; the websocket connection is initialized on both ends,
-        and the lowest numbered port in \code{portRange}.  
-        }      
+        and the lowest numbered port in \code{portRange}.
+        }
 
     \item{}{
       \code{ready(obj)}:
       returns TRUE when the R/browser websocket connection is ready for use.
-      }      
+      }
 
     \item{}{
       \code{port(obj)}: returns the actual port being used.
-      }      
+      }
 
     \item{}{
       \code{getBrowserInfo(obj)}: returns a character string describing
       the browser to which we are connected, using the standard W3C DOM \emph{navigator.userAgent}.
-      }      
+      }
 
     \item{}{
       \code{send(obj, msg)}:  sends a properly structured (having four fields: cmd,
       callback, status, payload) JSON message to the browser.
-      }      
+      }
 
     \item{}{
       \code{browserResponseReady(obj)}:  returns TRUE when the
       asynchronous response to the last message has been received from
       the browser.
       }
-    
+
     \item{}{
       \code{getBrowserResponse(obj)}:  returns the just-received
       JSON-encoded, four-field response to the latest message sent to
@@ -191,24 +199,33 @@ addRMessageHandler(key, functionName)
     \item{}{
       \code{closeWebSocket(obj)}:  Close the websocket port now in use, making it
     available for reuse.
-      }      
+      }
 
     \item{}{
       \code{getBrowserWindowTitle(obj)}:  Returns the title of the web page (or
       tab).
       }
-    
+
     \item{}{
-      \code{setBrowserWindowTitle(obj, newTitle, proclaim=FALSE)}:  Sets the
+      \code{setBrowserWindowTitle(obj, newTitle)}:  Sets the
       title of the web page or tab to which we are currently connected.
-      The "proclaim" argument is for demonstration purposes only, illustrating
-      to new users that the web page can be interactively manipulated from R.
        }
 
     \item{}{
       \code{getBrowserWindowSize(object)}: in pixels.
       }
-    
+
+    \item{}{
+      \code{roundTripTest(object, ...)}:  Sends json-enoded data to the
+      browser, decodes the return, which should be identical to the original.
+      }
+
+    \item{}{
+      \code{displayHTMLInDiv(object, htmlText, div.id)}: intended
+      primarily for debugging, used currently with roundTripTest to
+      display json/character count of the data sent and returned.
+      }
+
     \item{\dots}{Further arguments for \code{toJSON}, typically just the
     variable to be encoded.}
 
@@ -220,13 +237,14 @@ addRMessageHandler(key, functionName)
 
 \examples{
   library(BrowserViz)
-    
-  bv <- BrowserViz(4000:4024)
+
+  browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvdemo.html")
+  bv <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
 
   ## make sure everything is ready to use
   while(!ready(bv)) Sys.sleep(0.1)
 
-  port(bv)  
+  port(bv)
 
   ## illustrate a "low level" call.  This detail is usually hidden from
   ## the user, implemented and contained (in the case of this example)
@@ -242,11 +260,11 @@ addRMessageHandler(key, functionName)
   getBrowserWindowTitle(bv)
 
   ## set and get the windowTitle
-  setBrowserWindowTitle(bv, "new title", proclaim=TRUE)
+  setBrowserWindowTitle(bv, "new title")
   getBrowserWindowTitle(bv)
 
   ## BrowserViz provides another information method which, like the others, will apply
-  ## and maybe be of some use to derived classes 
+  ## and maybe be of some use to derived classes
   getBrowserWindowSize(bv)
 
   ## finally, you should close BrowserViz when you are done, returning

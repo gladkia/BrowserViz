@@ -1,13 +1,12 @@
 .getBrowser <- function()
 {
-    if(.Platform$OS.type == "windows")
-        stop("BrowserViz not (yet) supported on Windows.")
-    if(nchar(Sys.getenv("BROWSERVIZ_BROWSER")))
-        Sys.getenv("BROWSERVIZ_BROWSER")
-    else
+   # if(.Platform$OS.type == "windows")
+   #     stop("BrowserViz not (yet) supported on Windows.")
+   # if(nchar(Sys.getenv("BROWSERVIZ_BROWSER")))
+   #     Sys.getenv("BROWSERVIZ_BROWSER")
+   # else
         getOption("browser")
 }
-
 #----------------------------------------------------------------------------------------------------
 printf <- function(...) print(noquote(sprintf(...)))
 #----------------------------------------------------------------------------------------------------
@@ -22,12 +21,6 @@ toJSON <- function(..., auto_unbox = TRUE)
   jsonlite::toJSON(..., auto_unbox = auto_unbox)
 }
 #----------------------------------------------------------------------------------------------------
-# a default html + javascript file, an example, shows how to setup the websocket, get web page
-# dimensions, set and get the browser's window  title
-
-browserVizBrowserFile <- system.file(package="BrowserViz", "scripts", "viz.html")
-
-
 # this maps from incoming json commands to function calls
 dispatchMap <- new.env(parent=emptyenv())
 
@@ -50,7 +43,7 @@ status$result <- NULL
 
 # the duration of the aforementioned tight loop, waiting for the browser to respond.
 
-sleepTime <- 0.1
+sleepTime <- 1
 
 #----------------------------------------------------------------------------------------------------
 .BrowserViz <- setClass ("BrowserVizClass",
@@ -73,9 +66,10 @@ setGeneric('browserResponseReady',    signature='obj', function(obj) standardGen
 setGeneric('getBrowserResponse',      signature='obj', function(obj) standardGeneric('getBrowserResponse'))
 setGeneric('closeWebSocket',          signature='obj', function(obj) standardGeneric('closeWebSocket'))
 setGeneric('getBrowserWindowTitle',   signature='obj', function(obj) standardGeneric('getBrowserWindowTitle'))
-setGeneric('setBrowserWindowTitle',   signature='obj', function(obj, newTitle, proclaim=FALSE)
-                                                                     standardGeneric('setBrowserWindowTitle'))
+setGeneric('setBrowserWindowTitle',   signature='obj', function(obj, newTitle) standardGeneric('setBrowserWindowTitle'))
+setGeneric('roundTripTest',           signature='obj', function (obj, ...) standardGeneric('roundTripTest'))
 setGeneric('getBrowserWindowSize',    signature='obj', function(obj) standardGeneric('getBrowserWindowSize'))
+setGeneric('displayHTMLInDiv',        signature='obj', function(obj, htmlText, div.id) standardGeneric('displayHTMLInDiv'))
 #----------------------------------------------------------------------------------------------------
 setupMessageHandlers <- function()
 {
@@ -92,11 +86,10 @@ setupMessageHandlers <- function()
 # the BrowserTable class, which uses http in an ajax-ish way to pass pages of a possibly
 # very large data.frame to the browser for incremental display.
 #
-BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRUE, browserFile=NA,
+BrowserViz = function(portRange=10000:10100, title="BrowserViz",  browserFile, quiet=TRUE,
                       httpQueryProcessingFunction=NULL)
 {
-  if(is.na(browserFile))
-     browserFile <- browserVizBrowserFile
+  host <- "localhost"
 
   wsCon <- new.env(parent=emptyenv())
 
@@ -135,20 +128,26 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
 
   BrowserViz.state[["httpQueryProcessingFunction"]] <- httpQueryProcessingFunction
 
+  #printf("sleeping 2 seconds for browser/httpuv handshake")
+  #Sys.sleep(2);  # wait for the browser/httpuv handshake to complete
+  #printf("sleep complete")
 
   totalWait <- 0.0
-  maxWaitPermitted <- 1000.0
+  maxWaitPermitted <- 10000.0
+  sleepTime <- 2
 
-  while (!ready(obj)){
-     totalWait <- totalWait + sleepTime
-     stopifnot(totalWait < maxWaitPermitted)
-     if(!obj@quiet)
-        message(sprintf ("BrowserViz websocket not ready, waiting %6.2f seconds", sleepTime));
-     Sys.sleep(sleepTime)
-     }
+  while (is.null(wsCon$ws)){   # becomes non-null when handshake is established
+    totalWait <- totalWait + sleepTime
+    stopifnot(totalWait < maxWaitPermitted)
+    if(!obj@quiet)
+       message(sprintf ("BrowserViz websocket not ready, waiting %6.2f seconds", sleepTime));
+    Sys.sleep(sleepTime)
+    }
 
-  if(!obj@quiet)
+  if(!obj@quiet){
      message(sprintf("BrowserViz websocket ready after %6.2f seconds", totalWait));
+     message(sprintf("about to return BrowserViz object"));
+     }
 
   obj
 
@@ -174,7 +173,7 @@ BrowserViz = function(portRange, host="localhost", title="BrowserViz", quiet=TRU
      if(port > max(portRange))
         done <- TRUE
      else
-        wsID <- tryCatch(startDaemonizedServer("0.0.0.0", port, wsCon),
+        wsID <- tryCatch(startDaemonizedServer("127.0.0.1", port, wsCon),
                         error=function(m){sprintf("port not available: %d", port)})
      if(.validWebSocketID(wsID))
         done <- TRUE
@@ -244,13 +243,13 @@ setMethod('ready', 'BrowserVizClass',
      send(obj, list(cmd="ready", callback="handleResponse", status="request", payload=""))
 
      while (!browserResponseReady(obj)){
-        printf("waiting in BrowserViz.ready, browserResponseReady not yet true");
+        if(!obj@quiet) printf("waiting in BrowserViz.ready, browserResponseReady not yet true");
         Sys.sleep(sleepInterval)
         sleepIntervalCount <- sleepIntervalCount + 1
         }
 
-     printf("browserResponseReady now true, after %d sleepInterval/s of %f",
-            sleepIntervalCount, sleepInterval);
+     if(!obj@quiet) printf("browserResponseReady now true, after %d sleepInterval/s of %f",
+                           sleepIntervalCount, sleepInterval);
      getBrowserResponse(obj);
      return(TRUE);
      })
@@ -267,7 +266,7 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
 
   function (obj) {
     if(!obj@quiet){
-       message(sprintf("BrowserViz getBrowserResponse: %s", status$result))
+       message(sprintf("BrowserViz getBrowserResponse, length %d", length(status$result)))
        }
     return(status$result)
     })
@@ -290,8 +289,8 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
          if(!quiet) print("--- bv$call, about to call dynamically assigned queryProcessor");
          fields <- ls(req)
          for(field in fields){
-            printf("---- request field: %s", field)
-            print(req[[field]]);
+            #printf("---- request field: %s", field)
+            #print(req[[field]]);
             }
          queryProcessorFunction <- BrowserViz.state[["httpQueryProcessingFunction"]]
          if(!is.null(queryProcessorFunction))
@@ -314,7 +313,7 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
    wsCon$onWSOpen = function(ws) {
       if(!quiet)
          print("BrowserViz..setupWebSocketHandlers, wsCon$onWSOpen");
-      wsCon$ws <- ws
+      wsCon$ws <- ws   # this provides later access (eg wsCon$ws$send) to crucial functions
       ws$onMessage(function(binary, rawMessage) {
          if(!quiet) print("BrowserViz..setupWebSocketHandlers, onMessage ");
          message <- as.list(fromJSON(rawMessage))
@@ -398,6 +397,18 @@ setMethod('getBrowserInfo', 'BrowserVizClass',
      getBrowserResponse(obj);
      })
 
+#--------------------------------------------------------------------------------
+setMethod('roundTripTest', 'BrowserVizClass',
+
+  function (obj, ...) {
+     payload <- toJSON(...)
+     send(obj, list(cmd="roundTripTest", callback="handleResponse", status="request", payload=payload))
+     while (!browserResponseReady(obj)){
+        Sys.sleep(.1)
+        }
+     getBrowserResponse(obj);
+     })
+
 #----------------------------------------------------------------------------------------------------
 setMethod('getBrowserWindowTitle', 'BrowserVizClass',
 
@@ -412,14 +423,14 @@ setMethod('getBrowserWindowTitle', 'BrowserVizClass',
 #----------------------------------------------------------------------------------------------------
 setMethod('setBrowserWindowTitle', 'BrowserVizClass',
 
-  function (obj, newTitle, proclaim=FALSE) {
-     payload = list(title=newTitle, proclaim=proclaim)
+  function (obj, newTitle) {
+     payload = list(title=newTitle)
      send(obj, list(cmd="setWindowTitle", callback="handleResponse", status="request",
                     payload=payload))
      while (!browserResponseReady(obj)){
         Sys.sleep(.1)
         }
-     getBrowserResponse(obj)
+     invisible(getBrowserResponse(obj))
      })
 
 #----------------------------------------------------------------------------------------------------
@@ -431,6 +442,18 @@ setMethod('getBrowserWindowSize', 'BrowserVizClass',
         Sys.sleep(.1)
         }
      as.list(fromJSON(getBrowserResponse(obj)))
+     })
+
+#----------------------------------------------------------------------------------------------------
+setMethod('displayHTMLInDiv', 'BrowserVizClass',
+
+  function (obj, htmlText, div.id) {
+     payload = list(htmlText=htmlText, divID=div.id)
+     send(obj, list(cmd="displayHTMLInDiv", callback="handleResponse", status="request", payload=payload))
+     while (!browserResponseReady(obj)){
+        Sys.sleep(.1)
+        }
+     #as.list(fromJSON(getBrowserResponse(obj)))
      })
 
 #----------------------------------------------------------------------------------------------------
