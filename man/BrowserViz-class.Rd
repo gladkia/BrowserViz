@@ -236,41 +236,43 @@ addRMessageHandler(key, functionName)
 
 
 \examples{
-  library(BrowserViz)
+  if(interactive()){
+       library(BrowserViz)
 
-  browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvdemo.html")
-  bv <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+       browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvdemo.html")
+       bv <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
 
-  ## make sure everything is ready to use
-  while(!ready(bv)) Sys.sleep(0.1)
+       ## make sure everything is ready to use
+       while(!ready(bv)) Sys.sleep(0.1)
 
-  port(bv)
+       port(bv)
 
-  ## illustrate a "low level" call.  This detail is usually hidden from
-  ## the user, implemented and contained (in the case of this example)
-  ## in a getBrowserWindowTitle(bv) method call.  This level of detail
-  ## reveals what goes on behind the scenes.
+       ## illustrate a "low level" call.  This detail is usually hidden from
+       ## the user, implemented and contained (in the case of this example)
+       ## in a getBrowserWindowTitle(bv) method call.  This level of detail
+       ## reveals what goes on behind the scenes.
 
-  msg <- list(cmd="getWindowTitle", status="request", callback="handleResponse", payload="")
-  send(bv, msg)
-  while(!browserResponseReady(bv)) Sys.sleep(0.1)
-  getBrowserResponse(bv)
+       msg <- list(cmd="getWindowTitle", status="request", callback="handleResponse", payload="")
+       send(bv, msg)
+       while(!browserResponseReady(bv)) Sys.sleep(0.1)
+       getBrowserResponse(bv)
 
-  ## a simpler user-level approach:
-  getBrowserWindowTitle(bv)
+       ## a simpler user-level approach:
+       getBrowserWindowTitle(bv)
 
-  ## set and get the windowTitle
-  setBrowserWindowTitle(bv, "new title")
-  getBrowserWindowTitle(bv)
+       ## set and get the windowTitle
+       setBrowserWindowTitle(bv, "new title")
+       getBrowserWindowTitle(bv)
 
-  ## BrowserViz provides another information method which, like the others, will apply
-  ## and maybe be of some use to derived classes
-  getBrowserWindowSize(bv)
+       ## BrowserViz provides another information method which, like the others, will apply
+       ## and maybe be of some use to derived classes
+       getBrowserWindowSize(bv)
 
-  ## finally, you should close BrowserViz when you are done, returning
-  ## the port for use by other applications.
-  closeWebSocket(bv)
-}
+       ## finally, you should close BrowserViz when you are done, returning
+       ## the port for use by other applications.
+       closeWebSocket(bv)
+       } # if interactive
+   }
 
 
 \keyword{classes}
