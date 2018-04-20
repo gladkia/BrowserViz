@@ -59,6 +59,7 @@
 \alias{\S4method{displayHTMLInDiv}{BrowserVizClass}}
 
 \alias{toJSON}
+\alias{fromJSON}
 \alias{addRMessageHandler}
 
 \title{BrowserViz: a base class (for extension) and standalone example

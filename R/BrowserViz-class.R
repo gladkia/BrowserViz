@@ -21,6 +21,11 @@ toJSON <- function(..., auto_unbox = TRUE)
   jsonlite::toJSON(..., auto_unbox = auto_unbox)
 }
 #----------------------------------------------------------------------------------------------------
+fromJSON <- function(...)
+{
+  jsonlite::fromJSON(...)
+}
+#----------------------------------------------------------------------------------------------------
 # this maps from incoming json commands to function calls
 dispatchMap <- new.env(parent=emptyenv())
 

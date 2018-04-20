@@ -18,7 +18,8 @@ exportMethods (
 export(
    addRMessageHandler,
    BrowserViz,
-   toJSON
+   toJSON,
+   fromJSON
    )
 
 import(BiocGenerics)
