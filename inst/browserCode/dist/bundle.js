@@ -285,7 +285,8 @@ dispatchMessage: function (msg)
 //----------------------------------------------------------------------------------------------------
 send: function (msg)
 {
-   console.log("=== BrowserViz send: " + msg.cmd);
+   console.log("=== BrowserViz send: ");
+   console.log(msg);
    this.socket.send(JSON.stringify(msg));
 
 },  // send
@@ -478,7 +479,6 @@ function returnPayloadAsIs(msg)
 //----------------------------------------------------------------------------------------------------
 hub = __webpack_require__(0)
 var demo = BrowserVizDemo(hub);
-hub.init();
 demo.addMessageHandlers()
 hub.start();
 window.demo = demo;

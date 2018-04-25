@@ -1,16 +1,12 @@
 .getBrowser <- function()
 {
-   # if(.Platform$OS.type == "windows")
-   #     stop("BrowserViz not (yet) supported on Windows.")
-   # if(nchar(Sys.getenv("BROWSERVIZ_BROWSER")))
-   #     Sys.getenv("BROWSERVIZ_BROWSER")
-   # else
-        getOption("browser")
+  getOption("browser")
 }
 #----------------------------------------------------------------------------------------------------
 printf <- function(...) print(noquote(sprintf(...)))
 #----------------------------------------------------------------------------------------------------
 BrowserViz.state <- new.env(parent=emptyenv())
+BrowserViz.state$onOpenCall <- 0
 #----------------------------------------------------------------------------------------------------
 # the semanitcs of toJSON changed between RJSONIO and jsonlite: in the latter, scalars are
 # promoted to arrays of length 1.  rather than change our javascript code, and since such
@@ -45,11 +41,6 @@ dispatchMap <- new.env(parent=emptyenv())
 
 status <- new.env(parent=emptyenv())
 status$result <- NULL
-
-# the duration of the aforementioned tight loop, waiting for the browser to respond.
-
-sleepTime <- 1
-
 #----------------------------------------------------------------------------------------------------
 .BrowserViz <- setClass ("BrowserVizClass",
                          representation = representation (
@@ -62,6 +53,7 @@ sleepTime <- 1
                          )
 
 #----------------------------------------------------------------------------------------------------
+setGeneric('wait',                    signature='obj', function(obj, msecs) standardGeneric('wait'))
 setGeneric('show',                    signature='obj', function(obj) standardGeneric('show'))
 setGeneric('port',                    signature='obj', function(obj) standardGeneric('port'))
 setGeneric('ready',                   signature='obj', function(obj) standardGeneric('ready'))
@@ -97,13 +89,13 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz",  browserFile, q
   host <- "localhost"
 
   wsCon <- new.env(parent=emptyenv())
-
+  wsCon <- .setupWebSocketHandlers(wsCon, browserFile, quiet)
   result <- .startDaemonizedServerOnFirstAvailableLocalHostPort(portRange, wsCon)
   actualPort <- result$port
+  wsCon$wsID <- result$wsID
 
   if(is.null(actualPort))
     stop(sprintf("no available ports in range %d:%d", min(portRange), max(portRange)))
-
 
   uri = sprintf("http://%s:%s", host, actualPort)
 
@@ -118,11 +110,9 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz",  browserFile, q
      message(sprintf("summoning default browser to get %s", uri))
      }
 
+  sleepTime <- 2
+  Sys.sleep(sleepTime);
   browseURL(uri, browser=.getBrowser())
-
-  wsCon <- .setupWebSocketHandlers(wsCon, browserFile, quiet)
-
-  wsCon$wsID <- result$wsID
 
   if(!quiet)
      message(sprintf("starting daemonized server on port %s", actualPort))
@@ -133,26 +123,15 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz",  browserFile, q
 
   BrowserViz.state[["httpQueryProcessingFunction"]] <- httpQueryProcessingFunction
 
-  #printf("sleeping 2 seconds for browser/httpuv handshake")
-  #Sys.sleep(2);  # wait for the browser/httpuv handshake to complete
-  #printf("sleep complete")
-
   totalWait <- 0.0
-  maxWaitPermitted <- 10000.0
-  sleepTime <- 2
+  sleepTime <- 100
 
-  while (is.null(wsCon$ws)){   # becomes non-null when handshake is established
-    totalWait <- totalWait + sleepTime
-    stopifnot(totalWait < maxWaitPermitted)
-    if(!obj@quiet)
-       message(sprintf ("BrowserViz websocket not ready, waiting %6.2f seconds", sleepTime));
-    Sys.sleep(sleepTime)
-    }
-
-  if(!obj@quiet){
-     message(sprintf("BrowserViz websocket ready after %6.2f seconds", totalWait));
-     message(sprintf("about to return BrowserViz object"));
+  while(!wsCon$open){
+     wait(obj, sleepTime)
+     totalWait <- totalWait + (sleepTime/1000)
      }
+
+  message(sprintf("BrowserViz websocket ready after %6.2f seconds", totalWait));
 
   obj
 
@@ -177,9 +156,11 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz",  browserFile, q
    while(!done){
      if(port > max(portRange))
         done <- TRUE
-     else
+     else{
+        printf("attempting to open websocket connection on port %d", port)
         wsID <- tryCatch(startDaemonizedServer("127.0.0.1", port, wsCon),
-                        error=function(m){sprintf("port not available: %d", port)})
+                         error=function(m){sprintf("port not available: %d", port)})
+        }
      if(.validWebSocketID(wsID))
         done <- TRUE
      else
@@ -194,6 +175,13 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz",  browserFile, q
    list(wsID=wsID, port=actualPort)
 
 } # .startDaemonizedServerOnFirstAvailableLocalHostPort
+#----------------------------------------------------------------------------------------------------
+setMethod('wait', 'BrowserVizClass',
+
+  function (obj, msecs) {
+     service(msecs)  # an httpuv function
+     }) # show
+
 #----------------------------------------------------------------------------------------------------
 setMethod('show', 'BrowserVizClass',
 
@@ -231,40 +219,30 @@ setMethod('closeWebSocket', 'BrowserVizClass',
 
 #----------------------------------------------------------------------------------------------------
 # test initial variable setup, then send an actual message, and await the reply
-
 setMethod('ready', 'BrowserVizClass',
 
   function (obj) {
 
-     sleepIntervalCount <- 0
-     sleepInterval <- 0.1
-
-     if(!is.environment(obj@websocketConnection))
+     if(!is.environment(obj@websocketConnection)){
+        message(sprintf("--- obj@websocketConnection not an environment"))
         return(FALSE)
-
-     if(!obj@websocketConnection$open)
-        return(FALSE)
-
-     send(obj, list(cmd="ready", callback="handleResponse", status="request", payload=""))
-
-     while (!browserResponseReady(obj)){
-        if(!obj@quiet) printf("waiting in BrowserViz.ready, browserResponseReady not yet true");
-        Sys.sleep(sleepInterval)
-        sleepIntervalCount <- sleepIntervalCount + 1
         }
 
-     if(!obj@quiet) printf("browserResponseReady now true, after %d sleepInterval/s of %f",
-                           sleepIntervalCount, sleepInterval);
-     getBrowserResponse(obj);
-     return(TRUE);
-     })
+     if(!obj@websocketConnection$open){
+       message(sprintf("--- obj@websocketConnection not open"))
+       return(FALSE)
+       }
+   TRUE;
+   })
 
 #----------------------------------------------------------------------------------------------------
 setMethod('browserResponseReady', 'BrowserVizClass',
 
   function (obj) {
-    return(!is.null(status$result))
-    })
+     #printf("--- browserResponseReady, status$result:")
+     #print(status$result)
+     return(!is.null(status$result))
+     })
 
 #----------------------------------------------------------------------------------------------------
 setMethod('getBrowserResponse', 'BrowserVizClass',
@@ -273,7 +251,22 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
     if(!obj@quiet){
        message(sprintf("BrowserViz getBrowserResponse, length %d", length(status$result)))
        }
-    return(status$result)
+    x <- status$result
+    #status$result <- "abc.0"
+    #printf("status$result: %s", status$result)
+    #status$result <- "abc.1"
+    #printf("status$result: %s", status$result)
+    #status$result <- "abc.2"
+    #printf("status$result: %s", status$result)
+    #status$result <- "abc.3"
+    #printf("status$result: %s", status$result)
+    #status$result <- "abc.4"
+    #printf("status$result: %s", status$result)
+    #status$result <- "abc.5"
+    #printf("status$result: %s", status$result)
+    #Sys.sleep(1)
+    #printf("status$result: %s", status$result)
+    return(x)
     })
 
 #----------------------------------------------------------------------------------------------------
@@ -316,12 +309,18 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
 
       # called whenever a websocket connection is opened
    wsCon$onWSOpen = function(ws) {
+      BrowserViz.state$onOpenCall <- BrowserViz.state$onOpenCall + 1
+      #if(BrowserViz.state$onOpenCall == 1) return()
+      #printf("onWSOpen, connection: %s (%d)", ws$request$HTTP_CONNECTION, BrowserViz.state$onOpenCall)
       if(!quiet)
          print("BrowserViz..setupWebSocketHandlers, wsCon$onWSOpen");
       wsCon$ws <- ws   # this provides later access (eg wsCon$ws$send) to crucial functions
       ws$onMessage(function(binary, rawMessage) {
          if(!quiet) print("BrowserViz..setupWebSocketHandlers, onMessage ");
          message <- as.list(fromJSON(rawMessage))
+         #printf("--- ws$onMessage")
+         #print(message)
+         status$message <- message
          wsCon$lastMessage <- message
          if(!is(message, "list")){
             message("message: new websocket message is not a list");
@@ -382,12 +381,21 @@ dispatchMessage <- function(ws, msg, quiet)
 setMethod('send', 'BrowserVizClass',
 
     function(obj, msg) {
+      #printf("--- send 1")
       status$result <- NULL
+      Sys.sleep(1)
+      #printf("--- send 2")
+
       #printf("bv.send, nchar(str(msg)): %d", nchar(str(msg)));
       #printf("bv.send, nchar(msg$payload): %d", nchar(msg$payload))
+      #printf("--- send 3")
       msg.json <- toJSON(msg)
+      #printf("--- send 4")
       #printf("bv.send, nchar(msg.json): %d", nchar(str(msg.json)))
+      #printf("--- send 5")
+      #browser()
       obj@websocketConnection$ws$send(toJSON(msg))
+      #printf("--- send 6")
       #printf("obj@websocketConnection$ws$send(toJSON(msg)) complete");
       })
 
@@ -395,9 +403,13 @@ setMethod('send', 'BrowserVizClass',
 setMethod('getBrowserInfo', 'BrowserVizClass',
 
   function (obj) {
+     #printf("--- entering getBrowserInfo, status$result: ")
+     #print(status$result)
+     #status$result <- NULL
+     #browser()
      send(obj, list(cmd="getBrowserInfo", callback="handleResponse", status="request", payload=""))
      while (!browserResponseReady(obj)){
-        Sys.sleep(.1)
+        wait(obj, 100)
         }
      getBrowserResponse(obj);
      })
@@ -409,7 +421,7 @@ setMethod('roundTripTest', 'BrowserVizClass',
      payload <- toJSON(...)
      send(obj, list(cmd="roundTripTest", callback="handleResponse", status="request", payload=payload))
      while (!browserResponseReady(obj)){
-        Sys.sleep(.1)
+        wait(obj, 100)
         }
      getBrowserResponse(obj);
      })
@@ -419,8 +431,9 @@ setMethod('getBrowserWindowTitle', 'BrowserVizClass',
 
   function (obj) {
      send(obj, list(cmd="getWindowTitle", callback="handleResponse", status="request", payload=""))
+     #browser()
      while (!browserResponseReady(obj)){
-        Sys.sleep(.1)
+        wait(obj, 100)
         }
      getBrowserResponse(obj);
      })
@@ -433,7 +446,7 @@ setMethod('setBrowserWindowTitle', 'BrowserVizClass',
      send(obj, list(cmd="setWindowTitle", callback="handleResponse", status="request",
                     payload=payload))
      while (!browserResponseReady(obj)){
-        Sys.sleep(.1)
+        wait(obj, 100)
         }
      invisible(getBrowserResponse(obj))
      })
@@ -444,7 +457,7 @@ setMethod('getBrowserWindowSize', 'BrowserVizClass',
   function (obj) {
      send(obj, list(cmd="getWindowSize", callback="handleResponse", status="request", payload=""))
      while (!browserResponseReady(obj)){
-        Sys.sleep(.1)
+        wait(obj, 100)
         }
      as.list(fromJSON(getBrowserResponse(obj)))
      })
@@ -456,7 +469,7 @@ setMethod('displayHTMLInDiv', 'BrowserVizClass',
      payload = list(htmlText=htmlText, divID=div.id)
      send(obj, list(cmd="displayHTMLInDiv", callback="handleResponse", status="request", payload=payload))
      while (!browserResponseReady(obj)){
-        Sys.sleep(.1)
+        wait(obj, 100)
         }
      #as.list(fromJSON(getBrowserResponse(obj)))
      })
@@ -464,8 +477,13 @@ setMethod('displayHTMLInDiv', 'BrowserVizClass',
 #----------------------------------------------------------------------------------------------------
 handleResponse <- function(ws, msg)
 {
-   if(msg$status == "success")
+   if(msg$status == "success"){
+      #printf("-------- handleResponse, msg$payload: ")
+      #print(msg$payload)
       status$result <- msg$payload
+      #printf("         status$result: ")
+      #print(status$result)
+      }
    else{
      message(msg$payload)
      status$result <- NA

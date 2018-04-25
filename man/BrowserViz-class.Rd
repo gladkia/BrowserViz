@@ -34,6 +34,10 @@
 \alias{port,BrowserVizClass-method}
 \alias{\S4method{port}{BrowserVizClass}}
 
+\alias{wait}
+\alias{wait,BrowserVizClass-method}
+\alias{\S4method{wait}{BrowserVizClass}}
+
 \alias{closeWebSocket}
 \alias{closeWebSocket,BrowserVizClass-method}
 \alias{\S4method{closeWebSocket}{BrowserVizClass}}
@@ -86,6 +90,7 @@ addRMessageHandler(key, functionName)
 \S4method{getBrowserInfo}{BrowserVizClass}(obj)
 \S4method{closeWebSocket}{BrowserVizClass}(obj)
 \S4method{port}{BrowserVizClass}(obj)
+\S4method{wait}{BrowserVizClass}(obj, msecs)
 \S4method{getBrowserWindowTitle}{BrowserVizClass}(obj)
 \S4method{setBrowserWindowTitle}{BrowserVizClass}(obj, newTitle)
 \S4method{getBrowserWindowSize}{BrowserVizClass}(obj)
@@ -131,6 +136,7 @@ addRMessageHandler(key, functionName)
   \item{msg}{A name list, with four required slots: "cmd", "status",
   "callback", "payload".  See below.}
 
+  \item{msecs}{Numeric, number of milliseconds.}
   \item{newTitle}{A character string.}
 
   \item{htmlText}{A character string, i.e., "<h3>successful round trip of json-encoded data, length 48915.</h3>"}

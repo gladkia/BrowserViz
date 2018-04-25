@@ -1,6 +1,7 @@
 exportClasses(BrowserVizClass)
 
 exportMethods (
+   wait,
    ready,
    getBrowserInfo,
    send,

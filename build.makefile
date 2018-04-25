@@ -1,4 +1,4 @@
-all:  build  check biocCheck
+all:  build  install check biocCheck
 
 docs:
 	R -e "devtools::document()"

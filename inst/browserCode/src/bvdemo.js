@@ -54,7 +54,6 @@ function returnPayloadAsIs(msg)
 //----------------------------------------------------------------------------------------------------
 hub = require('browservizjs')
 var demo = BrowserVizDemo(hub);
-hub.init();
 demo.addMessageHandlers()
 hub.start();
 window.demo = demo;
