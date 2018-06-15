@@ -88,6 +88,13 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz",  browserFile, q
 {
   host <- "localhost"
 
+  if(!quiet){
+     message(sprintf("BrowserViz constructor starting with html file '%s'", browserFile))
+     message(sprintf(" html file exists? %s", file.exists(browserFile)))
+     }
+
+  stopifnot(file.exists(browserFile))
+
   wsCon <- new.env(parent=emptyenv())
   wsCon <- .setupWebSocketHandlers(wsCon, browserFile, quiet)
   result <- .startDaemonizedServerOnFirstAvailableLocalHostPort(portRange, wsCon)
@@ -99,12 +106,6 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz",  browserFile, q
 
   uri = sprintf("http://%s:%s", host, actualPort)
 
-  if(!quiet){
-     message(sprintf("BrowserViz constructor starting with html file '%s'", browserFile))
-     message(sprintf(" html file exists? %s", file.exists(browserFile)))
-     }
-
-  stopifnot(file.exists(browserFile))
 
   if(!quiet){
      message(sprintf("summoning default browser to get %s", uri))
