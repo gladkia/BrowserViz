@@ -1,8 +1,8 @@
 Package: BrowserViz
 Type: Package
 Title: BrowserViz: interactive R/browser graphics using websockets and JSON
-Version: 2.5.0
-Date: 2018-06-15
+Version: 2.5.5
+Date: 2019-02-14
 Author: Paul Shannon
 Maintainer: Paul Shannon <pshannon@systemsbiology.org>
 Depends: R (>= 3.4.0), jsonlite (>= 1.5), httpuv(>= 1.4.0)
