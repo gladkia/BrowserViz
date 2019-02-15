@@ -18,7 +18,7 @@ library(BrowserViz)
 #
 #  and adds one new one, to show how new capability is added
 #
-browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvdemo.html")
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
 PORT_RANGE <- 12111:12120   # usually defaults, but used here for more specific testing
 #--------------------------------------------------------------------------------
 # two sets of tests, useful in different contexts

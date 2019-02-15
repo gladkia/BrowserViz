@@ -1,4 +1,10 @@
-all:  build  install check biocCheck
+quick:  browserCode install
+
+all:  browserCode build  install check biocCheck
+
+browserCode:
+	(cd inst/browserCode; make assemble)
+
 
 docs:
 	R -e "devtools::document()"

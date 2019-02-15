@@ -128,7 +128,7 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
   sleepTime <- 100
 
   while(!wsCon$open){
-     wait(obj, sleepTime)
+      wait(obj, sleepTime)
      totalWait <- totalWait + (sleepTime/1000)
      }
 
@@ -158,7 +158,7 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
      if(port > max(portRange))
         done <- TRUE
      else{
-        printf("attempting to open websocket connection on port %d", port)
+        message(sprintf("attempting to open websocket connection on port %d", port))
         wsID <- tryCatch(startDaemonizedServer("127.0.0.1", port, wsCon),
                          error=function(m){sprintf("port not available: %d", port)})
         }
@@ -274,8 +274,8 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
 .setupWebSocketHandlers <- function(wsCon, browserFile, quiet)
 {
    if(!quiet){
-      printf("--- entering BrowserViz .setupWebSocketHandlers");
-      printf("    browserFile: %s", browserFile);
+      message(sprintf("--- entering BrowserViz .setupWebSocketHandlers"));
+      message(sprintf("    browserFile: %s (%s)", browserFile, file.exists(browserFile)));
       }
 
    wsCon$open <- FALSE
@@ -332,7 +332,7 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
             return;
             }
          cmd <- message$cmd
-         if(!quiet) printf("BrowserViz dispatching on msg$cmd: %s", message$cmd);
+         if(!quiet) message(sprintf("BrowserViz dispatching on msg$cmd: %s", message$cmd));
          dispatchMessage(ws, message, quiet);
          }) # onMessage
        wsCon$open <- TRUE
@@ -373,7 +373,7 @@ dispatchMessage <- function(ws, msg, quiet)
        }
 
    if(success){
-      if(!quiet) printf("BrowserViz.dispatchMessage calling function '%s'", function.name);
+      if(!quiet) message(sprintf("BrowserViz.dispatchMessage calling function '%s'", function.name));
       do.call(func, list(ws, msg))
       }
 

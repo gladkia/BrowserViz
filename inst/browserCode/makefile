@@ -1,4 +1,4 @@
-build: webpack assemble buildPackage installPackage
+build: assemble
 
 webpack:
 	npm install webpack
@@ -6,7 +6,9 @@ webpack:
 	webpack
 
 assemble:
-	(cd ./dist; m4 -P bvdemo.html-template | sed s/\`//g > bvdemo.html)
+	(cd ./src; m4 -P bvDemoApp.pre > ../dist/bvDemoApp.html)
+	ls -l ./dist/bvDemoApp.html
+#	(cd ./dist; m4 -P bvdemo.html-template | sed s/\`//g > bvdemo.html)
 
 buildPackage:
 	(cd ../../..; R CMD build --no-build-vignettes BrowserViz)
