@@ -99,7 +99,7 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
   wsCon <- .setupWebSocketHandlers(wsCon, browserFile, quiet)
   result <- .startDaemonizedServerOnFirstAvailableLocalHostPort(portRange, wsCon)
   actualPort <- result$port
-  wsCon$wsID <- result$wsID
+  wsCon$server <- result$server
 
   if(is.null(actualPort))
     stop(sprintf("no available ports in range %d:%d", min(portRange), max(portRange)))
@@ -138,42 +138,30 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
 
 } # BrowserViz: constructor
 #----------------------------------------------------------------------------------------------------
-.validWebSocketID <- function(candidate)
-{
-   if(length(grep("not available", candidate)) == 1)
-      return (FALSE)
-
-   return (TRUE)
-
-} # .validWebSocketID
-#----------------------------------------------------------------------------------------------------
 .startDaemonizedServerOnFirstAvailableLocalHostPort <- function(portRange, wsCon)
 {
    done <- FALSE
 
    port <- portRange[1]
-   wsID <- NULL
+   server <- NULL
 
    while(!done){
      if(port > max(portRange))
         done <- TRUE
      else{
         message(sprintf("attempting to open websocket connection on port %d", port))
-        wsID <- tryCatch(startDaemonizedServer("127.0.0.1", port, wsCon),
+        server <- tryCatch(startDaemonizedServer("127.0.0.1", port, wsCon),
                          error=function(m){sprintf("port not available: %d", port)})
         }
-     if(.validWebSocketID(wsID))
+     if(server$isRunning())
         done <- TRUE
      else
         port <- port + 1;
      } # while
 
-   actualPort <- NULL
+   actualPort <- server$getPort()
 
-   if(.validWebSocketID(wsID))
-      actualPort <- port
-
-   list(wsID=wsID, port=actualPort)
+   list(server=server, port=actualPort)
 
 } # .startDaemonizedServerOnFirstAvailableLocalHostPort
 #----------------------------------------------------------------------------------------------------
@@ -211,7 +199,7 @@ setMethod('closeWebSocket', 'BrowserVizClass',
         return()
         }
      obj@websocketConnection$open <- FALSE
-     stopDaemonizedServer(obj@websocketConnection$wsID)
+     stopDaemonizedServer(obj@websocketConnection$server)
      obj@websocketConnection$ws <- NULL
      obj@websocketConnection$ws <- -1
 
