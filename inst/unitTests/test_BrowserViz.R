@@ -151,9 +151,11 @@ checkConstructor <- function()
    print("--- checkConstructor")
    if(interactive()){
       app <- BrowserViz(portRange=PORT_RANGE, browserFile=browserVizBrowserFile, quiet=TRUE)
-      #checkTrue(ready(app))
+      checkTrue(ready(app))
       checkTrue(port(app) %in% PORT_RANGE)
       closeWebSocket(app)
+         # TODO (31 mar 2019): need better abstraction here
+      checkTrue(!app@websocketConnection$server$isRunning())
       #checkTrue(!ready(app))
       }
 

@@ -96,7 +96,7 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
 
   wsCon <- new.env(parent=emptyenv())
   wsCon <- .setupWebSocketHandlers(wsCon, browserFile, quiet)
-  result <- .startDaemonizedServerOnFirstAvailableLocalHostPort(portRange, wsCon)
+  result <- .startServerOnFirstAvailableLocalHostPort(portRange, wsCon)
   actualPort <- result$port
   wsCon$server <- result$server
 
@@ -137,7 +137,7 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
 
 } # BrowserViz: constructor
 #----------------------------------------------------------------------------------------------------
-.startDaemonizedServerOnFirstAvailableLocalHostPort <- function(portRange, wsCon)
+.startServerOnFirstAvailableLocalHostPort <- function(portRange, wsCon)
 {
    done <- FALSE
 
@@ -162,7 +162,7 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
 
    list(server=server, port=actualPort)
 
-} # .startDaemonizedServerOnFirstAvailableLocalHostPort
+} # .startServerOnFirstAvailableLocalHostPort
 #----------------------------------------------------------------------------------------------------
 setMethod('wait', 'BrowserVizClass',
 
@@ -198,7 +198,7 @@ setMethod('closeWebSocket', 'BrowserVizClass',
         return()
         }
      obj@websocketConnection$open <- FALSE
-     stopDaemonizedServer(obj@websocketConnection$server)
+     obj@websocketConnection$server$stop()
      obj@websocketConnection$ws <- NULL
      obj@websocketConnection$ws <- -1
 
@@ -298,16 +298,12 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
       # called whenever a websocket connection is opened
    wsCon$onWSOpen = function(ws) {
       BrowserViz.state$onOpenCall <- BrowserViz.state$onOpenCall + 1
-      #if(BrowserViz.state$onOpenCall == 1) return()
-      #printf("onWSOpen, connection: %s (%d)", ws$request$HTTP_CONNECTION, BrowserViz.state$onOpenCall)
       if(!quiet)
          print("BrowserViz..setupWebSocketHandlers, wsCon$onWSOpen");
-      wsCon$ws <- ws   # this provides later access (eg wsCon$ws$send) to crucial functions
+      wsCon$ws <- ws   # crucial assignment: this provides later calls to e.g.,  wsCon$ws$send
       ws$onMessage(function(binary, rawMessage) {
          if(!quiet) print("BrowserViz..setupWebSocketHandlers, onMessage ");
          message <- as.list(fromJSON(rawMessage))
-         #printf("--- ws$onMessage")
-         #print(message)
          status$message <- message
          wsCon$lastMessage <- message
          if(!is(message, "list")){
