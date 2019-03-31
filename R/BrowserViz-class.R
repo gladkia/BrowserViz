@@ -47,7 +47,6 @@ status$result <- NULL
                                                uri="character",
                                                port="numeric",
                                                websocketConnection="environment",
-                                               status="environment",
                                                quiet="logical"),
                          prototype = prototype (uri="http://localhost", 9000)
                          )
@@ -150,7 +149,7 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
         done <- TRUE
      else{
         message(sprintf("attempting to open websocket connection on port %d", port))
-        server <- tryCatch(startDaemonizedServer("127.0.0.1", port, wsCon),
+        server <- tryCatch(startServer("127.0.0.1", port, wsCon),
                          error=function(m){sprintf("port not available: %d", port)})
         }
      if(server$isRunning())
@@ -372,7 +371,7 @@ setMethod('send', 'BrowserVizClass',
     function(obj, msg) {
       #printf("--- send 1")
       status$result <- NULL
-      Sys.sleep(1)
+      #Sys.sleep(1)
       #printf("--- send 2")
 
       #printf("bv.send, nchar(str(msg)): %d", nchar(str(msg)));
