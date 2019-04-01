@@ -152,7 +152,7 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
         server <- tryCatch(startServer("127.0.0.1", port, wsCon),
                          error=function(m){sprintf("port not available: %d", port)})
         }
-     if(server$isRunning())
+     if("WebServer" %in% class(server))  # will be character if the port is already claimed
         done <- TRUE
      else
         port <- port + 1;
