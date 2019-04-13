@@ -279,12 +279,16 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
             #print(req[[field]]);
             }
          queryProcessorFunction <- BrowserViz.state[["httpQueryProcessingFunction"]]
-         if(!is.null(queryProcessorFunction))
-           body <- queryProcessorFunction(qs)
-         else
-           body <- "no query processor registered"
-         return(list(status=200L, headers = list('Content-Type' = 'text/html'),
-                     body=body))
+         if(!is.null(queryProcessorFunction)){
+            queryResult <- queryProcessorFunction(qs)
+            body <- queryResult$body
+            contentType <- queryResult$contentType
+            }
+         else{
+            body <- "no query processor registered"
+            contentType <- "text/html"
+            }
+         return(list(status=200L, headers=list('Content-Type'=contentType), body=body))
          } # the request had a query string
       wsUrl = paste(sep='', '"', "ws://",
                    ifelse(is.null(req$HTTP_HOST), req$SERVER_NAME, req$HTTP_HOST),
