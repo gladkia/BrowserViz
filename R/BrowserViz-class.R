@@ -227,8 +227,6 @@ setMethod('ready', 'BrowserVizClass',
 setMethod('browserResponseReady', 'BrowserVizClass',
 
   function (obj) {
-     #printf("--- browserResponseReady, status$result:")
-     #print(status$result)
      return(!is.null(status$result))
      })
 
@@ -240,20 +238,6 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
        message(sprintf("BrowserViz getBrowserResponse, length %d", length(status$result)))
        }
     x <- status$result
-    #status$result <- "abc.0"
-    #printf("status$result: %s", status$result)
-    #status$result <- "abc.1"
-    #printf("status$result: %s", status$result)
-    #status$result <- "abc.2"
-    #printf("status$result: %s", status$result)
-    #status$result <- "abc.3"
-    #printf("status$result: %s", status$result)
-    #status$result <- "abc.4"
-    #printf("status$result: %s", status$result)
-    #status$result <- "abc.5"
-    #printf("status$result: %s", status$result)
-    #Sys.sleep(1)
-    #printf("status$result: %s", status$result)
     return(x)
     })
 
@@ -369,32 +353,15 @@ dispatchMessage <- function(ws, msg, quiet)
 setMethod('send', 'BrowserVizClass',
 
     function(obj, msg) {
-      #printf("--- send 1")
-      status$result <- NULL
-      #Sys.sleep(1)
-      #printf("--- send 2")
-
-      #printf("bv.send, nchar(str(msg)): %d", nchar(str(msg)));
-      #printf("bv.send, nchar(msg$payload): %d", nchar(msg$payload))
-      #printf("--- send 3")
       msg.json <- toJSON(msg)
-      #printf("--- send 4")
-      #printf("bv.send, nchar(msg.json): %d", nchar(str(msg.json)))
-      #printf("--- send 5")
-      #browser()
       obj@websocketConnection$ws$send(toJSON(msg))
-      #printf("--- send 6")
-      #printf("obj@websocketConnection$ws$send(toJSON(msg)) complete");
+      status$result <- NULL
       })
 
 #--------------------------------------------------------------------------------
 setMethod('getBrowserInfo', 'BrowserVizClass',
 
   function (obj) {
-     #printf("--- entering getBrowserInfo, status$result: ")
-     #print(status$result)
-     #status$result <- NULL
-     #browser()
      send(obj, list(cmd="getBrowserInfo", callback="handleResponse", status="request", payload=""))
      while (!browserResponseReady(obj)){
         wait(obj, 100)
@@ -474,21 +441,12 @@ handleResponse <- function(ws, msg)
       }
    else{
      message(msg$payload)
-     status$result <- NA
+     status$result <- NULL
      }
 
    NULL
 
 } # handleResponse
 #----------------------------------------------------------------------------------------------------
-#.processQuery <- function(queryString)
-#{
-#
-#  list(status=200L, headers = list('Content-Type' = 'text/html'),
-#       body="hello from bv.processQuery, dynamically assigned")
-#
-#} # .processQuery
-##----------------------------------------------------------------------------------------------------
-#queryProcessor <- .processQuery
 
 
