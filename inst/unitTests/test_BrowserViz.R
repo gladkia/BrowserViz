@@ -30,7 +30,7 @@ PORT_RANGE <- 12111:12120   # usually defaults, but used here for more specific 
 #--------------------------------------------------------------------------------
 if(interactive()){
    if(!exists("bvApp")){
-      bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=FALSE)
+      bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
       #checkTrue(ready(bvApp))
       }
    } # if interactive
