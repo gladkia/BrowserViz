@@ -1,6 +1,6 @@
 quick:  browserCode install
 
-all:  browserCode build  install check biocCheck
+all:  browserCode build  install check
 
 browserCode:
 	(cd inst/browserCode; make assemble)
@@ -19,9 +19,6 @@ install:
 
 check:
 	(cd ..; R CMD check --no-manual --no-build-vignettes --ignore-vignettes `ls -t BrowserViz_* | head -1`)
-
-biocCheck:
-	(cd ..; R CMD BiocCheck `ls -t BrowserViz_* | head -1`)
 
 test:
 	for x in inst/unitTests/test_*.R; do echo ============== $$x; R -f $$x; done
