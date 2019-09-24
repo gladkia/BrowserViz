@@ -1,13 +1,14 @@
 language: R
-cache: packages
 bioc_required: true
 
 sudo: false
 cache:
   directories: $TRAVIS_BUILD_DIR/packrat/
   packages: true
+
 install:
   - R -e "0" --args --bootstrap-packrat
+
 warnings_are_errors: false
 r_build_args: "--no-build-vignettes"
 r_check_args: "--no-manual --no_build-vignettes --ignore-vignettes"
