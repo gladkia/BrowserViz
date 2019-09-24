@@ -18,7 +18,7 @@ install:
 	(cd ..; R CMD INSTALL BrowserViz)
 
 check:
-	(cd ..; R CMD check `ls -t BrowserViz_* | head -1`)
+	(cd ..; R CMD check --no-manual --no-build-vignettes --ignore-vignettes `ls -t BrowserViz_* | head -1`)
 
 biocCheck:
 	(cd ..; R CMD BiocCheck `ls -t BrowserViz_* | head -1`)

@@ -28,7 +28,9 @@ PORT_RANGE <- 12111:12120   # usually defaults, but used here for more specific 
 #         can be opened and closed, that when PORT_RANGE is exhausted the
 #         app handles that gracefully
 #--------------------------------------------------------------------------------
-if(interactive()){
+browser.available <- with(as.list(Sys.info()), sysname == "Linux" || nodename == "hagfish.local")
+#--------------------------------------------------------------------------------
+if(browser.available){
    if(!exists("bvApp")){
       bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
       #checkTrue(ready(bvApp))
@@ -60,7 +62,7 @@ deeperTests <- function()
 checkGetBrowserInfo <- function()
 {
    print("--- checkGetBrowserInfo")
-   if(interactive()){
+   if(browser.available){
       userAgent <- getBrowserInfo(bvApp)
       checkEquals(typeof(userAgent), "character")
       checkTrue(nchar(userAgent) > 5);  # 120 on chrome 40.0.2214.115 (27 feb 2015)
@@ -71,7 +73,7 @@ checkGetBrowserInfo <- function()
 checkGetBrowserInfo <- function()
 {
    print("--- checkGetBrowserInfo")
-   if(interactive()){
+   if(browser.available){
       userAgent <- getBrowserInfo(bvApp)
       checkEquals(typeof(userAgent), "character")
       checkTrue(nchar(userAgent) > 5);  # 120 on chrome 40.0.2214.115 (27 feb 2015)
@@ -82,7 +84,7 @@ checkGetBrowserInfo <- function()
 checkWindowTitle <- function()
 {
    print("--- checkWindowTitle")
-   if(interactive()){
+   if(browser.available){
       checkTrue(ready(bvApp))
       setBrowserWindowTitle(bvApp, "new title");
       checkEquals(getBrowserWindowTitle(bvApp), "new title")
@@ -94,7 +96,7 @@ checkGetWindowSize <- function()
 {
    print("--- checkGetWindowSize")
 
-   if(interactive()){
+   if(browser.available){
       checkTrue(ready(bvApp))
       x <- getBrowserWindowSize(bvApp)
       checkEquals(sort(names(x)), c("height", "width"))
@@ -106,7 +108,7 @@ checkGetWindowSize <- function()
 checkRoundTrips <- function(quiet=TRUE)
 {
    print("--- check_roundTrips")
-   if(interactive()){
+   if(browser.available){
       #checkTrue(ready(bvApp))
 
       setBrowserWindowTitle(bvApp, "bv round trip tests")
@@ -153,7 +155,7 @@ checkRoundTrips <- function(quiet=TRUE)
 checkConstructor <- function()
 {
    print("--- checkConstructor")
-   if(interactive()){
+   if(browser.available){
       app <- BrowserViz(portRange=PORT_RANGE, browserFile=browserVizBrowserFile, quiet=TRUE)
       checkTrue(ready(app))
       checkTrue(port(app) %in% PORT_RANGE)
@@ -171,7 +173,7 @@ checkMultipleOpenCloseOnSamePort <- function()
 {
    print("--- checkMultipleOpenCloseOnSamePort")
 
-   if(interactive()){
+   if(browser.available){
       max <- 3
       for(i in 1:max){
          app <- BrowserViz(portRange=PORT_RANGE[1], browserFile=browserVizBrowserFile, quiet=TRUE)
@@ -192,7 +194,7 @@ checkRunOutOfPorts <- function()
 {
    print("--- checkRunOutOfPorts")
 
-   if(interactive()){
+   if(browser.available){
       max <- 3
       portRange <- PORT_RANGE[1]:(PORT_RANGE[1]+1)
       apps <- lapply(rep("BrowserVizClass", max), new)
@@ -228,3 +230,4 @@ checkRunOutOfPorts <- function()
 
 } # checkRunOutOfPorts
 #--------------------------------------------------------------------------------
+if(browser.available) runTests()
