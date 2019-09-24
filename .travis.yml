@@ -1,4 +1,6 @@
 language: R
 cache: packages
 bioc_required: true
-r_check_args: "--no-vignettes"
+r_build_args: "--no-build-vignettes"
+r_check_args: "--no-manual --no_build-vignettes --ignore-vignettes"
+
