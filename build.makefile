@@ -1,10 +1,9 @@
 quick:  browserCode install
 
-all:  browserCode build  install check
+all:  browserCode docs build  install check
 
 browserCode:
 	(cd inst/browserCode; make assemble)
-
 
 docs:
 	R -e "devtools::document()"

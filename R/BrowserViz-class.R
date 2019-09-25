@@ -1,22 +1,62 @@
-.getBrowser <- function()
-{
-  getOption("browser")
-}
-#----------------------------------------------------------------------------------------------------
-printf <- function(...) print(noquote(sprintf(...)))
+#' @import BiocGenerics
+#' @importFrom methods new is
+#' @importFrom utils browseURL
+#'
+#' @import httpuv
+#' @import jsonlite
+#'
+#' @name BrowserViz-class
+#' @rdname BrowserViz-class
+#  aliases BrowserViz
+#'
+#' @exportClass BrowserViz
+#'
 #----------------------------------------------------------------------------------------------------
 BrowserViz.state <- new.env(parent=emptyenv())
 BrowserViz.state$onOpenCall <- 0
 #----------------------------------------------------------------------------------------------------
-# the semanitcs of toJSON changed between RJSONIO and jsonlite: in the latter, scalars are
-# promoted to arrays of length 1.  rather than change our javascript code, and since such
-# promotion -- while sensible in the context of R -- strikes me as gratuitous, I follow
-# jeroen ooms suggestion, creating this wrapper
+#' Transform an R data structure into JSON
+#'
+#' @description
+#'
+#' The semanitcs of toJSON changed between RJSONIO and jsonlite: in the latter, scalars are
+#' promoted to arrays of length 1.  rather than change our javascript code, and since such
+#' promotion -- while sensible in the context of R -- strikes me as gratuitous, I follow
+#' jeroen ooms suggestion, creating this wrapper
+#' Define an object of class Trena
+#'
+#' @rdname toJSON
+#'
+#' @param ... Extra arguments passed to this function
+#' @param auto_unbox Logical
+#'
+#' @return a character string with the JSON representation of the R object
+#'
+#' @export
+#'
+#' @examples
+#'
+#'  toJSON(data.frame(a=8:10, b=LETTERS[8:10], stringsAsFactors=FALSE))
+#'
 toJSON <- function(..., auto_unbox = TRUE)
 {
   jsonlite::toJSON(..., auto_unbox = auto_unbox)
 }
 #----------------------------------------------------------------------------------------------------
+#' Transform JSON string into a native R object
+#'
+#' @rdname fromJSON
+#'
+#' @param ... Extra arguments passed to this function
+#'
+#' @return a native R data structure
+#'
+#' @export
+#'
+#' @examples
+#'
+#'  fromJSON(toJSON(data.frame(a=8:10, b=LETTERS[8:10], stringsAsFactors=FALSE)))
+#'
 fromJSON <- function(...)
 {
   jsonlite::fromJSON(...)
@@ -42,7 +82,7 @@ dispatchMap <- new.env(parent=emptyenv())
 status <- new.env(parent=emptyenv())
 status$result <- NULL
 #----------------------------------------------------------------------------------------------------
-.BrowserViz <- setClass ("BrowserVizClass",
+.BrowserViz <- setClass ("BrowserViz",
                          representation = representation (
                                                uri="character",
                                                port="numeric",
@@ -73,15 +113,33 @@ setupMessageHandlers <- function()
 
 } # setupMessageHandlers
 #----------------------------------------------------------------------------------------------------
-# constructor: asks your browser to display browserFile, which is presented
-# by the minimal http server offered by httpuv, after which websocket messages are
-# exchanged.  the default browserFile, viz.html, does not do much, but is copied and
-# extended by BrowserViz subclassing applcations
-# the optional sixth argument, httpQueryProcessingFunction, provides subclasses with the
-# opportunity to execute code on the http server created here.  one case of this is
-# the BrowserTable class, which uses http in an ajax-ish way to pass pages of a possibly
-# very large data.frame to the browser for incremental display.
-#
+#' Constructor for BrowserViz
+#'
+#' @description
+#' asks your browser to display browserFile, which is presented
+#' by the minimal http server offered by httpuv, after which websocket messages are
+#' exchanged.  the default browserFile, viz.html, does not do much, but is copied and
+#' extended by BrowserViz subclassing applcations
+#' the optional sixth argument, httpQueryProcessingFunction,   one case of this is
+#' the BrowserTable class, which uses http in an ajax-ish way to pass pages of a possibly
+#' very large data.frame to the browser for incremental display.
+#'
+#' @name BrowserViz
+#' @rdname BrowserViz-class
+#'
+#' @param portRange The constructor looks for a free websocket port in this range.  15000:15100 by default
+#' @param title Used for the web browser window, "igvR" by default
+#' @param browserFile The full path to the bundled html, js and libraries, and css which constitute the browser app
+#' @param quiet A logical variable controlling verbosity during execution
+#' @param httpQueryProcessingFunction a function, default NULL, provides subclasses with the
+#'   opportunity to execute code on the http server created here.
+#'
+#' @return An object of the BrowserViZ class
+#'
+#' @export
+#'
+#'
+
 BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, quiet=TRUE,
                       httpQueryProcessingFunction=NULL)
 {
@@ -164,14 +222,35 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
 
 } # .startServerOnFirstAvailableLocalHostPort
 #----------------------------------------------------------------------------------------------------
-setMethod('wait', 'BrowserVizClass',
+#' Pause for the specified number of milliseconds
+#'
+#' @rdname wait
+#' @aliases wait
+#'
+#' @param obj An object of class BrowserViz
+#' @param msecs Numeric
+#'
+#' @export
+#'
+
+setMethod('wait', 'BrowserViz',
 
   function (obj, msecs) {
      service(msecs)  # an httpuv function
-     }) # show
+     }) # wait
 
 #----------------------------------------------------------------------------------------------------
-setMethod('show', 'BrowserVizClass',
+#' Display to sdtout the core attributes of the BrowserViz object
+#'
+#' @rdname show
+#' @aliases show
+#'
+#' @param obj An object of class BrowserViz
+#'
+#' @export
+#'
+
+setMethod('show', 'BrowserViz',
 
   function (obj) {
      msg <- sprintf("BrowserViz object");
@@ -183,14 +262,34 @@ setMethod('show', 'BrowserVizClass',
      }) # show
 
 #----------------------------------------------------------------------------------------------------
-setMethod('port', 'BrowserVizClass',
+#' Get the port number
+#'
+#' @rdname port
+#' @aliases port
+#'
+#' @param obj An object of class BrowserViz
+#'
+#' @returns the port number use in the websocket connection, a numeric value.
+#'
+#' @export
+#'
+setMethod('port', 'BrowserViz',
 
   function (obj) {
      obj@port
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('closeWebSocket', 'BrowserVizClass',
+#' Close the websocket connection - between your R session and your web browser.
+#'
+#' @rdname closeWebSocket
+#' @aliases closeWebSocket
+#'
+#' @param obj An object of class BrowserViz
+#'
+#' @export
+#'
+setMethod('closeWebSocket', 'BrowserViz',
 
   function (obj) {
      if(!obj@websocketConnection$open){
@@ -206,8 +305,16 @@ setMethod('closeWebSocket', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
-# test initial variable setup, then send an actual message, and await the reply
-setMethod('ready', 'BrowserVizClass',
+#' Is the websocket connection to the browser ready for use?
+#'
+#' @rdname ready
+#' @aliases ready
+#'
+#' @param obj An object of class BrowserViz
+#'
+#' @export
+#'
+setMethod('ready', 'BrowserViz',
 
   function (obj) {
 
@@ -224,14 +331,32 @@ setMethod('ready', 'BrowserVizClass',
    })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('browserResponseReady', 'BrowserVizClass',
+#' browserResponseReady
+#'
+#' @rdname browserResponseReady
+#' @aliases browserResponseReady
+#'
+#' @param obj An object of class BrowserViz
+#'
+#' @export
+#'
+setMethod('browserResponseReady', 'BrowserViz',
 
   function (obj) {
      return(!is.null(status$result))
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('getBrowserResponse', 'BrowserVizClass',
+#' Retrieve the response sent by the browser
+#'
+#' @rdname getBrowserResponse
+#' @aliases getBrowserResponse
+#'
+#' @param obj An object of class BrowserViz
+#'
+#' @export
+#'
+setMethod('getBrowserResponse', 'BrowserViz',
 
   function (obj) {
     if(!obj@quiet){
@@ -258,10 +383,10 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
       if(nchar(qs) > 0){
          if(!quiet) print("--- bv$call, about to call dynamically assigned queryProcessor");
          fields <- ls(req)
-         for(field in fields){
+         #for(field in fields){
             #printf("---- request field: %s", field)
             #print(req[[field]]);
-            }
+         #   }
          queryProcessorFunction <- BrowserViz.state[["httpQueryProcessingFunction"]]
          if(!is.null(queryProcessorFunction)){
             queryResult <- queryProcessorFunction(qs)
@@ -313,12 +438,33 @@ setMethod('getBrowserResponse', 'BrowserVizClass',
 
 } # .setupWebSocketHandlers
 #--------------------------------------------------------------------------------
+#' Supply the name of a function to call, identified by its key
+#'
+#' @rdname addRMessageHandler
+#' @aliases addRMessageHandler
+#'
+#' @param key A character string
+#' @param functionName A character string
+#'
+#' @export
+#'
 addRMessageHandler <- function(key, functionName)
 {
    dispatchMap[[key]] <- functionName
 
-} # addRMessageHandler
+} # addRMessagHandler
 #---------------------------------------------------------------------------------------------------
+#' Route the message coming in from the browser to the appropriate R function.
+#'
+#' @rdname dispatchMessage
+#' @aliases dispatchMessage
+#'
+#' @param ws   a websocket connectin
+#' @param msg  the JSON-encoded message from the browser
+#' @param quiet logical TRUE or FALSE
+#'
+#'
+
 dispatchMessage <- function(ws, msg, quiet)
 {
    if(!msg$cmd %in% ls(dispatchMap)){
@@ -350,7 +496,17 @@ dispatchMessage <- function(ws, msg, quiet)
 
 } # dispatchMessage
 #---------------------------------------------------------------------------------------------------
-setMethod('send', 'BrowserVizClass',
+#' Send the specified message to the browser
+#'
+#' @rdname send
+#' @aliases send
+#'
+#' @param obj An object of class BrowserViz
+#' @param msg A list with four fields: {cmd: "someCommand", status: "request",
+#'                                      callback: "someFunction", payload: "someData"}
+#' @export
+#'
+setMethod('send', 'BrowserViz',
 
     function(obj, msg) {
       msg.json <- toJSON(msg)
@@ -359,7 +515,16 @@ setMethod('send', 'BrowserVizClass',
       })
 
 #--------------------------------------------------------------------------------
-setMethod('getBrowserInfo', 'BrowserVizClass',
+#' Retrieve basic attributes of the attached web browser.
+#'
+#' @rdname getBrowserInfo
+#' @aliases getBrowserInfo
+#'
+#' @param obj An object of class BrowserViz
+#'
+#' @export
+#'
+setMethod('getBrowserInfo', 'BrowserViz',
 
   function (obj) {
      send(obj, list(cmd="getBrowserInfo", callback="handleResponse", status="request", payload=""))
@@ -370,7 +535,17 @@ setMethod('getBrowserInfo', 'BrowserVizClass',
      })
 
 #--------------------------------------------------------------------------------
-setMethod('roundTripTest', 'BrowserVizClass',
+#' Supply the name of a function to call, identified by its key
+#'
+#' @rdname roundTripTest
+#' @aliases roundTripTest
+#'
+#' @param obj An object of class BrowserViz
+#' @param ... other arguments
+#'
+#' @export
+#'
+setMethod('roundTripTest', 'BrowserViz',
 
   function (obj, ...) {
      payload <- toJSON(...)
@@ -382,7 +557,16 @@ setMethod('roundTripTest', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('getBrowserWindowTitle', 'BrowserVizClass',
+#' Supply the name of a function to call, identified by its key
+#'
+#' @rdname getBrowserWindowTitle
+#' @aliases getBrowserWindowTitle
+#'
+#' @param obj An object of class BrowserViz
+#'
+#' @export
+#'
+setMethod('getBrowserWindowTitle', 'BrowserViz',
 
   function (obj) {
      send(obj, list(cmd="getWindowTitle", callback="handleResponse", status="request", payload=""))
@@ -394,7 +578,17 @@ setMethod('getBrowserWindowTitle', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('setBrowserWindowTitle', 'BrowserVizClass',
+#' Supply the name of a function to call, identified by its key
+#'
+#' @rdname setBrowserWindowTitle
+#' @aliases setBrowserWindowTitle
+#'
+#' @param obj An object of class BrowserViz
+#' @param newTitle A character string
+#'
+#' @export
+#'
+setMethod('setBrowserWindowTitle', 'BrowserViz',
 
   function (obj, newTitle) {
      payload = list(title=newTitle)
@@ -407,7 +601,16 @@ setMethod('setBrowserWindowTitle', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('getBrowserWindowSize', 'BrowserVizClass',
+#' Supply the name of a function to call, identified by its key
+#'
+#' @rdname getBrowserWindowSize
+#' @aliases getBrowserWindowSize
+#'
+#' @param obj An object of class BrowserViz
+#'
+#' @export
+#'
+setMethod('getBrowserWindowSize', 'BrowserViz',
 
   function (obj) {
      send(obj, list(cmd="getWindowSize", callback="handleResponse", status="request", payload=""))
@@ -418,7 +621,18 @@ setMethod('getBrowserWindowSize', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
-setMethod('displayHTMLInDiv', 'BrowserVizClass',
+#' Ask the browser to display html markup in the specified div
+#'
+#' @rdname displayHTMLInDiv
+#' @aliases displayHTMLInDiv
+#'
+#' @param obj An object of class BrowserViz
+#' @param htmlText A character string with HTML markup
+#' @param div.id  A character string
+#'
+#' @export
+#'
+setMethod('displayHTMLInDiv', 'BrowserViz',
 
   function (obj, htmlText, div.id) {
      payload = list(htmlText=htmlText, divID=div.id)
@@ -430,6 +644,42 @@ setMethod('displayHTMLInDiv', 'BrowserVizClass',
      })
 
 #----------------------------------------------------------------------------------------------------
+#' Is there a web browser available for testing?
+#'
+#' @description
+#' This package's unit tests require a web browser to connect to.  our heuristic, though not bullet
+#'  proof, is that one of three conditions must be met
+#' Supply the name of a function to call, identified by its key
+#'
+#' @name webBrowserAvailableForTesting
+#' @rdname webBrowserAvailableForTesting
+#' @aliases webBrowserAvailableForTesting
+#'
+#' @return Logical TRUE or FALSE
+#'
+#' @export
+#'
+webBrowserAvailableForTesting <- function()
+{
+  authorsDevelopmentMachine <- grepl("hagfish", Sys.info()["nodename"])
+  bioconductorBuildSystem.linux <- with(as.list(Sys.info()), sysname == "Linux")
+  interactiveUse <- interactive()
+  return(authorsDevelopmentMachine || bioconductorBuildSystem.linux || interactiveUse)
+
+} # webBrowserAvailableForTesting
+#----------------------------------------------------------------------------------------------------
+#' handleResponse
+#'
+#' @rdname handleResponse
+#' @aliases handleResponse
+#'
+#' @param ws websocket connectin
+#' @param msg the JSON-encoded character string returned by the browser
+#'
+#' @return NULL
+#'
+#' @export
+#'
 handleResponse <- function(ws, msg)
 {
    if(msg$status == "success"){
@@ -448,5 +698,8 @@ handleResponse <- function(ws, msg)
 
 } # handleResponse
 #----------------------------------------------------------------------------------------------------
-
-
+.getBrowser <- function()
+{
+  getOption("browser")
+}
+#----------------------------------------------------------------------------------------------------

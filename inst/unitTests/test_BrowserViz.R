@@ -28,9 +28,7 @@ PORT_RANGE <- 12111:12120   # usually defaults, but used here for more specific 
 #         can be opened and closed, that when PORT_RANGE is exhausted the
 #         app handles that gracefully
 #--------------------------------------------------------------------------------
-browser.available <- with(as.list(Sys.info()), sysname == "Linux" || nodename == "hagfish.local")
-#--------------------------------------------------------------------------------
-if(browser.available){
+if(BrowserViz::webBrowserAvailableForTesting()){
    if(!exists("bvApp")){
       bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
       #checkTrue(ready(bvApp))
@@ -62,7 +60,7 @@ deeperTests <- function()
 checkGetBrowserInfo <- function()
 {
    print("--- checkGetBrowserInfo")
-   if(browser.available){
+   if(BrowserViz::webBrowserAvailableForTesting()){
       userAgent <- getBrowserInfo(bvApp)
       checkEquals(typeof(userAgent), "character")
       checkTrue(nchar(userAgent) > 5);  # 120 on chrome 40.0.2214.115 (27 feb 2015)
@@ -73,7 +71,7 @@ checkGetBrowserInfo <- function()
 checkGetBrowserInfo <- function()
 {
    print("--- checkGetBrowserInfo")
-   if(browser.available){
+   if(BrowserViz::webBrowserAvailableForTesting()){
       userAgent <- getBrowserInfo(bvApp)
       checkEquals(typeof(userAgent), "character")
       checkTrue(nchar(userAgent) > 5);  # 120 on chrome 40.0.2214.115 (27 feb 2015)
@@ -84,7 +82,7 @@ checkGetBrowserInfo <- function()
 checkWindowTitle <- function()
 {
    print("--- checkWindowTitle")
-   if(browser.available){
+   if(BrowserViz::webBrowserAvailableForTesting()){
       checkTrue(ready(bvApp))
       setBrowserWindowTitle(bvApp, "new title");
       checkEquals(getBrowserWindowTitle(bvApp), "new title")
@@ -96,7 +94,7 @@ checkGetWindowSize <- function()
 {
    print("--- checkGetWindowSize")
 
-   if(browser.available){
+   if(BrowserViz::webBrowserAvailableForTesting()){
       checkTrue(ready(bvApp))
       x <- getBrowserWindowSize(bvApp)
       checkEquals(sort(names(x)), c("height", "width"))
@@ -108,7 +106,7 @@ checkGetWindowSize <- function()
 checkRoundTrips <- function(quiet=TRUE)
 {
    print("--- check_roundTrips")
-   if(browser.available){
+   if(BrowserViz::webBrowserAvailableForTesting()){
       #checkTrue(ready(bvApp))
 
       setBrowserWindowTitle(bvApp, "bv round trip tests")
@@ -155,7 +153,7 @@ checkRoundTrips <- function(quiet=TRUE)
 checkConstructor <- function()
 {
    print("--- checkConstructor")
-   if(browser.available){
+   if(BrowserViz::webBrowserAvailableForTesting()){
       app <- BrowserViz(portRange=PORT_RANGE, browserFile=browserVizBrowserFile, quiet=TRUE)
       checkTrue(ready(app))
       checkTrue(port(app) %in% PORT_RANGE)
@@ -173,7 +171,7 @@ checkMultipleOpenCloseOnSamePort <- function()
 {
    print("--- checkMultipleOpenCloseOnSamePort")
 
-   if(browser.available){
+   if(BrowserViz::webBrowserAvailableForTesting()){
       max <- 3
       for(i in 1:max){
          app <- BrowserViz(portRange=PORT_RANGE[1], browserFile=browserVizBrowserFile, quiet=TRUE)
@@ -194,10 +192,10 @@ checkRunOutOfPorts <- function()
 {
    print("--- checkRunOutOfPorts")
 
-   if(browser.available){
+   if(BrowserViz::webBrowserAvailableForTesting()){
       max <- 3
       portRange <- PORT_RANGE[1]:(PORT_RANGE[1]+1)
-      apps <- lapply(rep("BrowserVizClass", max), new)
+      apps <- lapply(rep("BrowserViz", max), new)
 
       boundToFail <- function(max, portRange){
          for(i in 1:max){
@@ -230,4 +228,5 @@ checkRunOutOfPorts <- function()
 
 } # checkRunOutOfPorts
 #--------------------------------------------------------------------------------
-if(browser.available) runTests()
+if(BrowserViz::webBrowserAvailableForTesting())
+   runTests()
