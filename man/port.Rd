@@ -11,6 +11,9 @@
 \arguments{
 \item{obj}{An object of class BrowserViz}
 }
+\value{
+the port number use in the websocket connection, a numeric value.
+}
 \description{
 Get the port number
 }

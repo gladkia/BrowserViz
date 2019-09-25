@@ -15,11 +15,10 @@ toJSON(..., auto_unbox = TRUE)
 a character string with the JSON representation of the R object
 }
 \description{
-The semanitcs of toJSON changed between RJSONIO and jsonlite: in the latter, scalars are
+The semantics of toJSON changed between RJSONIO and jsonlite: in the latter, scalars are
 promoted to arrays of length 1.  rather than change our javascript code, and since such
 promotion -- while sensible in the context of R -- strikes me as gratuitous, I follow
 jeroen ooms suggestion, creating this wrapper
-Define an object of class Trena
 }
 \examples{
 

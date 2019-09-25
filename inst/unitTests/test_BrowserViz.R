@@ -1,14 +1,13 @@
 library(RUnit)
 library(BrowserViz)
 #--------------------------------------------------------------------------------
-# specify an html/javascript file which gives this particular BrowserViz app its
-# personality, assembled by npm and webpackfrom this package's companion
 # file "github:paul-shannon/browservizjs" and these two
 #
 #  inst/browserCode/src/bvdemo.js
 #  inst/browserCode/dist/bvdemo.html-template
 #
-# the tests below exercise the base browserviz messages
+# the tests below exercise the base browserviz messages:
+#
 #    ready
 #    getBrowserInfo
 #    getWindowTitle
@@ -16,10 +15,13 @@ library(BrowserViz)
 #    getWindowSize
 #    roundTripTest
 #
-#  and adds one new one, to show how new capability is added
 #
+#--------------------------------------------------------------------------------
+# specify an html/javascript file which gives this particular BrowserViz app its
+# personality
 browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-PORT_RANGE <- 12111:12120   # usually defaults, but used here for more specific testing
+# default port range is normally used, but used here for more specific testing
+PORT_RANGE <- 12111:12120
 #--------------------------------------------------------------------------------
 # two sets of tests, useful in different contexts
 #   daily routine build tests: construct just one instance, and therefore just
@@ -59,7 +61,8 @@ deeperTests <- function()
 #--------------------------------------------------------------------------------
 checkGetBrowserInfo <- function()
 {
-   print("--- checkGetBrowserInfo")
+   message(sprintf("--- checkGetBrowserInfo"))
+
    if(BrowserViz::webBrowserAvailableForTesting()){
       userAgent <- getBrowserInfo(bvApp)
       checkEquals(typeof(userAgent), "character")
@@ -70,7 +73,8 @@ checkGetBrowserInfo <- function()
 #--------------------------------------------------------------------------------
 checkGetBrowserInfo <- function()
 {
-   print("--- checkGetBrowserInfo")
+   message(sprintf("--- checkGetBrowserInfo"))
+
    if(BrowserViz::webBrowserAvailableForTesting()){
       userAgent <- getBrowserInfo(bvApp)
       checkEquals(typeof(userAgent), "character")
@@ -81,7 +85,8 @@ checkGetBrowserInfo <- function()
 #--------------------------------------------------------------------------------
 checkWindowTitle <- function()
 {
-   print("--- checkWindowTitle")
+   message(sprintf("--- checkWindowTitle"))
+
    if(BrowserViz::webBrowserAvailableForTesting()){
       checkTrue(ready(bvApp))
       setBrowserWindowTitle(bvApp, "new title");
@@ -92,7 +97,7 @@ checkWindowTitle <- function()
 #--------------------------------------------------------------------------------
 checkGetWindowSize <- function()
 {
-   print("--- checkGetWindowSize")
+   message(sprintf("--- checkGetWindowSize"))
 
    if(BrowserViz::webBrowserAvailableForTesting()){
       checkTrue(ready(bvApp))
@@ -105,7 +110,8 @@ checkGetWindowSize <- function()
 #--------------------------------------------------------------------------------
 checkRoundTrips <- function(quiet=TRUE)
 {
-   print("--- check_roundTrips")
+   message(sprintf("--- check_roundTrips"))
+
    if(BrowserViz::webBrowserAvailableForTesting()){
       #checkTrue(ready(bvApp))
 
@@ -152,7 +158,8 @@ checkRoundTrips <- function(quiet=TRUE)
 #--------------------------------------------------------------------------------
 checkConstructor <- function()
 {
-   print("--- checkConstructor")
+   message(sprintf("--- checkConstructor"))
+
    if(BrowserViz::webBrowserAvailableForTesting()){
       app <- BrowserViz(portRange=PORT_RANGE, browserFile=browserVizBrowserFile, quiet=TRUE)
       checkTrue(ready(app))
@@ -169,7 +176,7 @@ checkConstructor <- function()
 #--------------------------------------------------------------------------------
 checkMultipleOpenCloseOnSamePort <- function()
 {
-   print("--- checkMultipleOpenCloseOnSamePort")
+   message(sprintf("--- checkMultipleOpenCloseOnSamePort"))
 
    if(BrowserViz::webBrowserAvailableForTesting()){
       max <- 3
@@ -190,7 +197,7 @@ checkMultipleOpenCloseOnSamePort <- function()
 #--------------------------------------------------------------------------------
 checkRunOutOfPorts <- function()
 {
-   print("--- checkRunOutOfPorts")
+   message(sprintf("--- checkRunOutOfPorts"))
 
    if(BrowserViz::webBrowserAvailableForTesting()){
       max <- 3

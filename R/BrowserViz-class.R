@@ -1,3 +1,11 @@
+#' BrowserViz:  a base class for R/webbrowser interactive graphics
+#'
+#' @docType package
+#'
+#' @name BrowserViz-class
+#' @rdname BrowserViz-class
+#' @aliases BrowserViz-class
+#'
 #' @import BiocGenerics
 #' @importFrom methods new is
 #' @importFrom utils browseURL
@@ -5,83 +13,33 @@
 #' @import httpuv
 #' @import jsonlite
 #'
-#' @name BrowserViz-class
-#' @rdname BrowserViz-class
-#  aliases BrowserViz
-#'
 #' @exportClass BrowserViz
 #'
 #----------------------------------------------------------------------------------------------------
-BrowserViz.state <- new.env(parent=emptyenv())
-BrowserViz.state$onOpenCall <- 0
-#----------------------------------------------------------------------------------------------------
-#' Transform an R data structure into JSON
-#'
 #' @description
+#' Many of the best interactive graphics capabilities available today are written in Javascript and
+#' run in a web browser.  BrowserViz makes these capabilities available in R, using websockets
+#' for message passing back and forth between R and the browser. This class connects your R session to your web browser via websockets,
+#' using the R httupv library, which in turn uses the Rook webserver.
 #'
-#' The semanitcs of toJSON changed between RJSONIO and jsonlite: in the latter, scalars are
-#' promoted to arrays of length 1.  rather than change our javascript code, and since such
-#' promotion -- while sensible in the context of R -- strikes me as gratuitous, I follow
-#' jeroen ooms suggestion, creating this wrapper
-#' Define an object of class Trena
+#' BrowserViz is a concrete base class, in that instances can be constructed and run - which we do for testing.
+#' The primary use of this BrowserViz is to be subclassed: to facilitate the creation of new
+#' browser-based, R-connected interactive graphics capabilities embodied in R packages, written by
+#' programmers with some skill in both R and Javascript.  Two examples of this can
+#' be found in these Bioconductor packages \url{https://bioconductor.org/packages/devel/bioc/html/igvR.html}
+#' and \url{https://bioconductor.org/packages/devel/bioc/html/RCyjs.html}.
+#' @seealso \code{\link{BrowserViz}}
 #'
-#' @rdname toJSON
-#'
-#' @param ... Extra arguments passed to this function
-#' @param auto_unbox Logical
-#'
-#' @return a character string with the JSON representation of the R object
-#'
-#' @export
-#'
-#' @examples
-#'
-#'  toJSON(data.frame(a=8:10, b=LETTERS[8:10], stringsAsFactors=FALSE))
-#'
-toJSON <- function(..., auto_unbox = TRUE)
-{
-  jsonlite::toJSON(..., auto_unbox = auto_unbox)
-}
 #----------------------------------------------------------------------------------------------------
-#' Transform JSON string into a native R object
-#'
-#' @rdname fromJSON
-#'
-#' @param ... Extra arguments passed to this function
-#'
-#' @return a native R data structure
-#'
-#' @export
-#'
-#' @examples
-#'
-#'  fromJSON(toJSON(data.frame(a=8:10, b=LETTERS[8:10], stringsAsFactors=FALSE)))
-#'
-fromJSON <- function(...)
-{
-  jsonlite::fromJSON(...)
-}
-#----------------------------------------------------------------------------------------------------
-# this maps from incoming json commands to function calls
-dispatchMap <- new.env(parent=emptyenv())
 
-# status is global variable at file scope, invisible outside the package.
-# it keeps track of web sockect connection state, and -- crucially --
-# holds the result variable.  this solves the latency problem: when we make
-# a request to the code running in the browser, the browser later (though
-# often very quickly) sends a JSON message back to R.  If we are, for instance,
-# asking for the current browser window title (see 'getBrowserWindowTitle' below), that
-# result is sent to the  call back we have registered, "handleResponse")
-# to make this seem like a synchronous call, the caller sits in a tight sleep loop,
-# waiting until status$result is no longer NULL.  getBrowserWindowTitle will then
-# parse that JSON response into an R variable.
-# the checking of status$result, and its retrieval when ready (no longer null)
-# is accomplished by exported methods browserResponseReady and getBrowserResponse,
-# to be used by subclasses as well.
-
-status <- new.env(parent=emptyenv())
-status$result <- NULL
-#----------------------------------------------------------------------------------------------------
+#' An S4 class to create and manage a modest webserver for websocket message passing  between R and Javascript
+#' running in your web browser
+#'
+#' @slot uri The http location at which this modest webserver runs
+#' @slot port An integer port number for the http connection
+#' @slot websocketConnection An environment managed by the httpuv library on our behalf
+#' @slot quiet Logical varaible controlling verbosity during execution
+#'
 .BrowserViz <- setClass ("BrowserViz",
                          representation = representation (
                                                uri="character",
@@ -107,6 +65,31 @@ setGeneric('roundTripTest',           signature='obj', function (obj, ...) stand
 setGeneric('getBrowserWindowSize',    signature='obj', function(obj) standardGeneric('getBrowserWindowSize'))
 setGeneric('displayHTMLInDiv',        signature='obj', function(obj, htmlText, div.id) standardGeneric('displayHTMLInDiv'))
 #----------------------------------------------------------------------------------------------------
+
+# some global variables:
+BrowserViz.state <- new.env(parent=emptyenv())
+BrowserViz.state$onOpenCall <- 0
+
+# this maps from incoming json commands to function calls
+dispatchMap <- new.env(parent=emptyenv())
+
+# status is global variable at file scope, invisible outside the package.
+# it keeps track of web sockect connection state, and -- crucially --
+# holds the result variable.  this solves the latency problem: when we make
+# a request to the code running in the browser, the browser later (though
+# often very quickly) sends a JSON message back to R.  If we are, for instance,
+# asking for the current browser window title (see 'getBrowserWindowTitle' below), that
+# result is sent to the  call back we have registered, "handleResponse")
+# to make this seem like a synchronous call, the caller sits in a tight sleep loop,
+# waiting until status$result is no longer NULL.  getBrowserWindowTitle will then
+# parse that JSON response into an R variable.
+# the checking of status$result, and its retrieval when ready (no longer null)
+# is accomplished by exported methods browserResponseReady and getBrowserResponse,
+# to be used by subclasses as well.
+
+status <- new.env(parent=emptyenv())
+status$result <- NULL
+#----------------------------------------------------------------------------------------------------
 setupMessageHandlers <- function()
 {
    addRMessageHandler("handleResponse", "handleResponse")
@@ -115,17 +98,22 @@ setupMessageHandlers <- function()
 #----------------------------------------------------------------------------------------------------
 #' Constructor for BrowserViz
 #'
-#' @description
-#' asks your browser to display browserFile, which is presented
-#' by the minimal http server offered by httpuv, after which websocket messages are
-#' exchanged.  the default browserFile, viz.html, does not do much, but is copied and
-#' extended by BrowserViz subclassing applcations
-#' the optional sixth argument, httpQueryProcessingFunction,   one case of this is
-#' the BrowserTable class, which uses http in an ajax-ish way to pass pages of a possibly
-#' very large data.frame to the browser for incremental display.
+#' @name BrowserViz constructor
+#' @rdname BrowserViz
 #'
-#' @name BrowserViz
-#' @rdname BrowserViz-class
+#' @description
+#'
+#' This constructor function:
+#'
+#' \itemize{
+#'   \item creates the BrowserViz object
+#'   \item initializes the httpuv web server
+#'   \item prepares that web server to additionally handle websocket traffic
+#'   \item loads a "browserFile" - an html/javascript/css web page to communicate with in your web browser
+#'   \item opens websocket communication between your R session and your browser
+#'   \item installs an optional "httpQueryProcessingFunction" to handle http (non-websocket) requests.
+#' }
+#'
 #'
 #' @param portRange The constructor looks for a free websocket port in this range.  15000:15100 by default
 #' @param title Used for the web browser window, "igvR" by default
@@ -240,7 +228,7 @@ setMethod('wait', 'BrowserViz',
      }) # wait
 
 #----------------------------------------------------------------------------------------------------
-#' Display to sdtout the core attributes of the BrowserViz object
+#' Display the core attributes of the BrowserViz object to stdout
 #'
 #' @rdname show
 #' @aliases show
@@ -269,7 +257,7 @@ setMethod('show', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
-#' @returns the port number use in the websocket connection, a numeric value.
+#' @return the port number use in the websocket connection, a numeric value.
 #'
 #' @export
 #'
@@ -701,5 +689,51 @@ handleResponse <- function(ws, msg)
 .getBrowser <- function()
 {
   getOption("browser")
+}
+#----------------------------------------------------------------------------------------------------
+#' Transform an R data structure into JSON
+#'
+#' @description
+#'
+#' The semantics of toJSON changed between RJSONIO and jsonlite: in the latter, scalars are
+#' promoted to arrays of length 1.  rather than change our javascript code, and since such
+#' promotion -- while sensible in the context of R -- strikes me as gratuitous, I follow
+#' jeroen ooms suggestion, creating this wrapper
+#'
+#' @rdname toJSON
+#'
+#' @param ... Extra arguments passed to this function
+#' @param auto_unbox Logical
+#'
+#' @return a character string with the JSON representation of the R object
+#'
+#' @export
+#'
+#' @examples
+#'
+#'  toJSON(data.frame(a=8:10, b=LETTERS[8:10], stringsAsFactors=FALSE))
+#'
+toJSON <- function(..., auto_unbox = TRUE)
+{
+  jsonlite::toJSON(..., auto_unbox = auto_unbox)
+}
+#----------------------------------------------------------------------------------------------------
+#' Transform JSON string into a native R object
+#'
+#' @rdname fromJSON
+#'
+#' @param ... Extra arguments passed to this function
+#'
+#' @return a native R data structure
+#'
+#' @export
+#'
+#' @examples
+#'
+#'  fromJSON(toJSON(data.frame(a=8:10, b=LETTERS[8:10], stringsAsFactors=FALSE)))
+#'
+fromJSON <- function(...)
+{
+  jsonlite::fromJSON(...)
 }
 #----------------------------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 \name{show,BrowserViz-method}
 \alias{show,BrowserViz-method}
 \alias{show}
-\title{Display to sdtout the core attributes of the BrowserViz object}
+\title{Display the core attributes of the BrowserViz object to stdout}
 \usage{
 \S4method{show}{BrowserViz}(obj)
 }
@@ -12,5 +12,5 @@
 \item{obj}{An object of class BrowserViz}
 }
 \description{
-Display to sdtout the core attributes of the BrowserViz object
+Display the core attributes of the BrowserViz object to stdout
 }

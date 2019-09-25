@@ -1,4 +1,4 @@
-quick:  browserCode install
+quick:  browserCode docs install
 
 all:  browserCode docs build  install check
 
