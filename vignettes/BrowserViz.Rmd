@@ -1,0 +1,206 @@
+---
+title: "BrowserViz:  A base class for building interactive R/browser visualization tools"
+author: "Paul Shannon"
+package: BrowserViz
+date: "`r Sys.Date()`"
+output:
+   BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{"BrowserViz: support programmatic access to javascript apps running in your web browser"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+BrowserViz provides the basis for, and a very simple working example of, 
+interactive R/browser visualization.  Thus two interactive powerful and complementary
+environments are linked, creating a powerful hybrid setting for exploratory data analysis.
+
+
+This work is motivated by our belief that contemporary web browsers, supporting
+HTML5 and Canvas, and running increasingly powerful Javascript libraries (for example, [d3](https://d3js.org/))
+and [cytoscape.js](http://js.cytoscape.org/) have become the best setting in which to
+develop interactive graphics for exploratory data analysis.  We 
+predict that web browsers, already powerful and easily
+programmed, will steadily improve in rendiring power and interactivity, and thus
+remain the optimal setting for interactive R visualization for years to come.
+
+[Shiny](https://shiny.rstudio.com) and [htmlwidgets](https://www.htmlwidgets.org/) are two very popular packages which provide
+solutions to this same general problem:  how does one use the power of web browser graphics from R?  
+Both of these package create bindings in R to HTML widgets and Javascript objects.
+This creates representations for these objects in R: a button, a d3 scatterplot, an
+interactive geographic map. The two packages provide elegant support for these bindings
+and a clear path to creating more of them.
+
+The principal different between BrowserViz and these worthy packages
+is the use of only **loose coupling** of R and the browser.  In slogan
+form, our approach can be summarized, ``let R be R, and Javascript be
+Javascript''.  BrowserViz links wwo rich programming environments, but
+the environments are kept maximally ignorant of each other.  Only
+simple JSON messages pass back and forth, and these are at a high
+semantic level: no HTML, CSS or Javascript.  Rather than creating
+representations of web objects in R, which would be tight-coupling of
+the two environments, BrowserViz provides a style of programming in
+which
+
+
+  -  Web objects are (just as in standard widespread web programming) created in HTML, CSS and Javascript
+  -  JSON and websockets provide simple explicit message passing between R and the browser
+  -  High-level web objects (i.e., an xy plotter, or a network viewer) are created by and manipulated 
+    by Javscript functions at the request of high-level R function calls
+  -  Web elements can initiate (call back to) R functions
+  -  A traditional event-driven architecture is used throughout, in which events are either R function calls or user (keyboard or mouse) actions in the browser. 
+
+BrowserViz provides a very low threshold for those wishing to create R/web browser visualizations.
+This base package hides the  complexity of websocket initiation and message passing.
+The websocket communication channel is created with a single R function call.
+Passing messages and handling responses is similarly simple.  The
+intricacy (or simplicity) of the web browser interface is determined by the programmer. A 
+vast collection of easily available books, examples, tutorials, and support websites make web browser
+programming especially easy to learn.  The BrowserViz approach will be of
+interest to any programmer interested in the visualization of data, and proficient in -- or willing
+to learn -- both R and Javascript.
+
+Standalone web sites can be created, but the primary intended audience for this package
+is the R programmmer exploring and analyzing data in R and using the browser visualization for the 
+indispensable benefits it provides.  We hope that many visualization tools will be created.  We provide
+a simple x-y plotter (see BrowserVizDemoto illustrate how to write a BrowserViz subclass
+application.  The Biocondcutor RCyjs package  is a full-featured visualization tool for network visualization built
+upon [cytoscape.js](http://js.cytoscape.org) and the web browser.  
+
+The BrowserViz class, though a base class intended for subclassing,
+includes a simple demo which performs a few elementary browser manipulations,
+and queries the browser for some simple state (window size, window title,
+browser version).  The principal goal of the package is to provide the the
+websocket ``plumbing'' along with a standard (simple, open-ended) message
+protocol for communicating between the two environments.
+
+
+# Standard Message Format
+
+Just as the ubiquitous and language-neutral
+[websocket](https://en.wikipedia.org/wiki/WebSocket) protocol provides
+the BrowserViz communication mechanism, so does [JSON](https://www.w3schools.com/js/js_json_intro.asp)
+provide the message notation.  Native data types in R (a named list, for instance)
+and Javascript (an object, with key:value pairs) are easily converted
+to and from JSON by libraries standard in each language.   R data.frames are a little trickier.
+
+We have adopted a simple, adaptable data structure flexible enough for all of
+the uses so far encountered.  In JSON (and Javascript):
+```
+    {{cmd: "setBrowserWindowTitle",
+      status: "request",
+      callback:"handleResponse", 
+      payload: "BrowserViz Demo"}}
+```
+
+Websocket servers both send and receive messages.  Thus a typical BrowserViz event begins
+with sending a message from one environment to the other, and often concludes with some sort of a return or
+**callback** message.
+
+   - **cmd**: the name of the operation the sender wishes to be performed by the receiver.
+   - **status**: might be ``success'', ``failure'', ``error'', ``deferred response''.
+   - **callback**: provided by the sender, this specifies the operation which the receiver is 
+     to call *in the client* after it (the receiver) completes the operation it was asked to perform.
+   - **payload** An open-ended data structure, sometimes empty, as simple as a character string, as complex
+              as any conceivable deeply nested list.  
+
+```{r jsonlite,  results='hide'}
+  library(jsonlite)
+  msg <- toJSON(list(cmd="setBrowserWindowTitle",
+                     status="request", 
+                     callback="handleResponse",
+                     payload="BrowserViz demo"))
+``` 
+
+The callback for this request could be empty, which by convention we encode as the empty string.
+The calling code, in R, and the receiving code, in Javascript, only need to be consistent.  If the 
+caller provides a non-empty *callback*, the Javascript receiver should craft and send a return message
+with the canonical four fields specifying *cmd=callback* and any *payload* the caller expects, 
+perhaps
+
+```
+    {cmd: "handleResponse",
+    status: "success",
+    callback:"",
+    payload: "BrowserViz Demo"}
+```
+
+An empty **payload** could also be used, in which case the **success** status of the
+return command is the only information returned from Javascript to R.  All decisions of this
+sort are left to the programmer.  Often the same person writes the R and the Javascript code
+that talk back and forth over the websocket.  If different programmers are involved, then
+careful communication and documentation is required, of the expectations, contraints and
+*payload( structure.  
+
+
+# The Simple BrowserViz ``Application''
+
+We predict that the principal use of BrowserViz will be as a base class for other
+rich visualzation packages, and that authors of those derived classes will be be able
+to proceed without any direct involvement in the nuts and bolts of websocket creation
+and handling.  Nonetheless, BrowserViz is a complete R/browser application, albeit
+one with only a few features.   These features (R methods on the BrowserViz object), few though
+they be, are automatically available to all BrowserViz subclasses.
+
+  - port
+  - ready
+  - browserResponseReady
+  - getBrowserResponse
+  - closeWebSocket
+  - send
+  - getBrowserWindowSize
+  - getBrowserWindowTitle
+  - setBrowserWindowTitle
+  - roundTripTest
+  - displayHTMLInDiv
+
+The last two of these methods are used in daily tests of this package.  Conceptually
+simple, they also illustrate basic use:
+
+
+Note that the **browserVizBrowserFile** mentioned in the second and
+sixth lines below, and which is included in this package, is a
+combination of HTML, javascript and css.  When you construct a
+BrowerViz application, you supply this filename; this file is sent to
+the browser.  When received and interpreted in the browser, the 
+HTML is rendered into the page, and the Javascript code executes,
+requesting a websocket connection right back to the R session's
+http/websocket server.  After the connection is established, messages
+can flow back and forth between the two environments, R and the
+web browser.
+
+
+```{r roundTripTest,  eval=FALSE, results='hide'}
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode",
+                                     "dist", "bvDemoApp.html")
+PORT_RANGE <- 12111:12120
+if(BrowserViz::webBrowserAvailableForTesting()){
+   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+   data <- list(lowercase=letters, uppercase=LETTERS)
+   json.returned <- roundTripTest(bvApp, data)
+   data.returned <- fromJSON(json.returned)
+   message(sprintf("    %5d bytes exchanged", nchar(json.returned)))
+   stopifnot(data == data.returned)
+   html <- sprintf("<h3>round trip of json-encoded data, %d chars</h3>",
+                   nchar(json.returned))
+   displayHTMLInDiv(bvApp, html, "bvDemoDiv")
+   }
+```
+
+
+
+
+
+
+
+

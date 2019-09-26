@@ -13,5 +13,7 @@ License: GPL-2
 LazyLoad: yes
 biocViews: Visualization, ThirdPartyClient
 NeedsCompilation: no
+VignetteBuilder:
+  knitr
 Encoding: UTF-8
 RoxygenNote: 6.1.1

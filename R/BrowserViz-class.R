@@ -523,7 +523,7 @@ setMethod('getBrowserInfo', 'BrowserViz',
      })
 
 #--------------------------------------------------------------------------------
-#' Supply the name of a function to call, identified by its key
+#' Send data to the browser, ensure that it is returned accurately.
 #'
 #' @rdname roundTripTest
 #' @aliases roundTripTest

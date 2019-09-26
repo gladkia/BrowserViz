@@ -7,6 +7,7 @@ browserCode:
 
 docs:
 	R -e "devtools::document()"
+
 vig:
 	R -e "devtools::build_vignettes()"
 

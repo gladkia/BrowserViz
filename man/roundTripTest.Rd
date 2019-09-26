@@ -4,7 +4,7 @@
 \name{roundTripTest,BrowserViz-method}
 \alias{roundTripTest,BrowserViz-method}
 \alias{roundTripTest}
-\title{Supply the name of a function to call, identified by its key}
+\title{Send data to the browser, ensure that it is returned accurately.}
 \usage{
 \S4method{roundTripTest}{BrowserViz}(obj, ...)
 }
@@ -14,5 +14,5 @@
 \item{...}{other arguments}
 }
 \description{
-Supply the name of a function to call, identified by its key
+Send data to the browser, ensure that it is returned accurately.
 }

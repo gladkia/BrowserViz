@@ -31,3 +31,5 @@ inst/doc
 
 # npm/webpack intermediary files
 dist/bundle.js
+doc
+Meta
