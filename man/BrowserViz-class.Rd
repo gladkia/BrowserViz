@@ -5,7 +5,8 @@
 \alias{BrowserViz-class}
 \alias{.BrowserViz}
 \alias{BrowserViz-class-package}
-\title{BrowserViz:  a base class for R/webbrowser interactive graphics}
+\title{BrowserViz:  a base class providing simple, extensible message passing between
+your R session and your web browser, for interactive data visualization.}
 \description{
 Many of the best interactive graphics capabilities available today are written in Javascript and
 run in a web browser.  BrowserViz makes these capabilities available in R, using websockets

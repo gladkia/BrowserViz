@@ -1,4 +1,5 @@
-#' BrowserViz:  a base class for R/webbrowser interactive graphics
+#' BrowserViz:  a base class providing simple, extensible message passing between
+#' your R session and your web browser, for interactive data visualization.
 #'
 #' @docType package
 #'

@@ -1,11 +1,11 @@
-quick:  browserCode docs install
+quick:  browserCode roxy install
 
-all:  browserCode docs build  install check
+all:  browserCode roxy build  install check
 
 browserCode:
 	(cd inst/browserCode; make assemble)
 
-docs:
+roxy:
 	R -e "devtools::document()"
 
 vig:
@@ -22,3 +22,6 @@ check:
 
 test:
 	for x in inst/unitTests/test_*.R; do echo ============== $$x; R -f $$x; done
+
+pkgdown:
+	R -e "devtools::build_site()"
