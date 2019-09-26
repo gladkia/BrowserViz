@@ -1,8 +1,0 @@
-language: R
-bioc_required: true
-
-sudo: false
-
-warnings_are_errors: false
-r_build_args: "--no-build-vignettes"
-r_check_args: "--no-manual --no_build-vignettes --ignore-vignettes"

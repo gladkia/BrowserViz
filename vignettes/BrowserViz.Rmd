@@ -1,5 +1,8 @@
 ---
-title: "BrowserViz:  A base class for building interactive R/browser visualization tools"
+title: "BrowserViz:  A base class providing simple, extensible message passing between
+ your R session and web browser, for interactive data visualization.
+
+
 author: "Paul Shannon"
 package: BrowserViz
 date: "`r Sys.Date()`"
