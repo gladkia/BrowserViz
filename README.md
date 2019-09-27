@@ -5,11 +5,13 @@ of, interactive R/browser visualization. Thus two interactive powerful
 and complementary environments are linked, creating a powerful hybrid
 setting for exploratory data analysis.
 
+The basic architecture:
+
 ![alt tag](https://raw.githubusercontent.com/paul-shannon/BrowserViz/master/docs/browserVizDiagram.png)
 
 This work is motivated by our belief that contemporary web browsers,
 supporting HTML5 and Canvas, and running increasingly powerful
-Javascript libraries (for example, d3) and cytoscape.js have become
+Javascript libraries (for example, d3 and cytoscape.js) have become
 the best setting in which to develop interactive graphics for
 exploratory data analysis. We predict that web browsers, already
 powerful and easily programmed, will steadily improve in rendiring
