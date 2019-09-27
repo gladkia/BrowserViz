@@ -6,7 +6,7 @@ bvdemo.html-template
 .build.mk
 .git/
 inst/unitTests/tmp*
-
+^.*\.png$
 
 ^.*\.Rproj$
 ^\.Rproj\.user$
