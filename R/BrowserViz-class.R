@@ -235,7 +235,7 @@ setMethod('wait', 'BrowserViz',
 #'
 #' @param object An object of class BrowserViz
 #'
-#'
+#' @export
 
 setMethod('show', 'BrowserViz',
 
