@@ -8,7 +8,7 @@
 #' @aliases BrowserViz-class
 #'
 #' @import BiocGenerics
-#' @importFrom methods new is
+#' @import methods
 #' @importFrom utils browseURL
 #'
 #' @import httpuv
@@ -52,7 +52,6 @@
 
 #----------------------------------------------------------------------------------------------------
 setGeneric('wait',                    signature='obj', function(obj, msecs) standardGeneric('wait'))
-setGeneric('show',                    signature='obj', function(obj) standardGeneric('show'))
 setGeneric('port',                    signature='obj', function(obj) standardGeneric('port'))
 setGeneric('ready',                   signature='obj', function(obj) standardGeneric('ready'))
 setGeneric('getBrowserInfo',          signature='obj', function(obj) standardGeneric('getBrowserInfo'))
@@ -234,19 +233,18 @@ setMethod('wait', 'BrowserViz',
 #' @rdname show
 #' @aliases show
 #'
-#' @param obj An object of class BrowserViz
+#' @param object An object of class BrowserViz
 #'
-#' @export
 #'
 
 setMethod('show', 'BrowserViz',
 
-  function (obj) {
+  function (object) {
      msg <- sprintf("BrowserViz object");
      cat(msg, '\n', sep='')
-     msg <- sprintf("ready? %s", ready(obj))
+     msg <- sprintf("ready? %s", ready(object))
      cat(msg, '\n', sep='')
-     msg <- sprintf("port: %d", port(obj))
+     msg <- sprintf("port: %d", port(object))
      cat(msg, '\n', sep='')
      }) # show
 

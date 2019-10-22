@@ -6,10 +6,10 @@
 \alias{show}
 \title{Display the core attributes of the BrowserViz object to stdout}
 \usage{
-\S4method{show}{BrowserViz}(obj)
+\S4method{show}{BrowserViz}(object)
 }
 \arguments{
-\item{obj}{An object of class BrowserViz}
+\item{object}{An object of class BrowserViz}
 }
 \description{
 Display the core attributes of the BrowserViz object to stdout
