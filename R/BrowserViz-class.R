@@ -669,7 +669,7 @@ webBrowserAvailableForTesting <- function()
 #'
 handleResponse <- function(ws, msg)
 {
-   if(msg$status == "success"){
+   if(msg$status == "success" || msg$status == "failure"){
       #printf("-------- handleResponse, msg$payload: ")
       #print(msg$payload)
       status$result <- msg$payload

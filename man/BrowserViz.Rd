@@ -5,8 +5,13 @@
 \alias{BrowserViz}
 \title{Constructor for BrowserViz}
 \usage{
-BrowserViz(portRange = 10000:10100, title = "BrowserViz", browserFile,
-  quiet = TRUE, httpQueryProcessingFunction = NULL)
+BrowserViz(
+  portRange = 10000:10100,
+  title = "BrowserViz",
+  browserFile,
+  quiet = TRUE,
+  httpQueryProcessingFunction = NULL
+)
 }
 \arguments{
 \item{portRange}{The constructor looks for a free websocket port in this range.  15000:15100 by default}

@@ -4,7 +4,6 @@
 \name{BrowserViz-class}
 \alias{BrowserViz-class}
 \alias{.BrowserViz}
-\alias{BrowserViz-class-package}
 \title{BrowserViz:  a base class providing simple, extensible message passing between
 your R session and your web browser, for interactive data visualization.}
 \description{
