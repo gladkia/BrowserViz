@@ -651,7 +651,8 @@ webBrowserAvailableForTesting <- function()
   authorsDevelopmentMachine <- grepl("hagfish", Sys.info()["nodename"])
   bioconductorBuildSystem.linux <- with(as.list(Sys.info()), sysname == "Linux")
   interactiveUse <- interactive()
-  return(authorsDevelopmentMachine || bioconductorBuildSystem.linux || interactiveUse)
+
+  return(authorsDevelopmentMachine || interactiveUse)
 
 } # webBrowserAvailableForTesting
 #----------------------------------------------------------------------------------------------------
