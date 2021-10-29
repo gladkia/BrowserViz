@@ -7,7 +7,7 @@
 handleResponse(ws, msg)
 }
 \arguments{
-\item{ws}{websocket connectin}
+\item{ws}{websocket connection}
 
 \item{msg}{the JSON-encoded character string returned by the browser}
 }

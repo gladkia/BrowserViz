@@ -22,6 +22,7 @@ library(BrowserViz)
 browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
 # default port range is normally used, but used here for more specific testing
 PORT_RANGE <- 12111:12120
+#PORT_RANGE <- 5800:5800
 #--------------------------------------------------------------------------------
 # two sets of tests, useful in different contexts
 #   daily routine build tests: construct just one instance, and therefore just
@@ -30,9 +31,12 @@ PORT_RANGE <- 12111:12120
 #         can be opened and closed, that when PORT_RANGE is exhausted the
 #         app handles that gracefully
 #--------------------------------------------------------------------------------
+chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
+options(browser="firefox")
 if(BrowserViz::webBrowserAvailableForTesting()){
    if(!exists("bvApp")){
-      bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+       bvApp <- BrowserViz(portRange=PORT_RANGE, browserFile=browserVizBrowserFile,
+                           quiet=FALSE)
       #checkTrue(ready(bvApp))
       }
    } # if interactive

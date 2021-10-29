@@ -92,6 +92,7 @@ status$result <- NULL
 #----------------------------------------------------------------------------------------------------
 setupMessageHandlers <- function()
 {
+   printf("--- BrowserViz-class, setupMessageHanlders")
    addRMessageHandler("handleResponse", "handleResponse")
 
 } # setupMessageHandlers
@@ -402,7 +403,8 @@ setMethod('getBrowserResponse', 'BrowserViz',
          print("BrowserViz..setupWebSocketHandlers, wsCon$onWSOpen");
       wsCon$ws <- ws   # crucial assignment: this provides later calls to e.g.,  wsCon$ws$send
       ws$onMessage(function(binary, rawMessage) {
-         if(!quiet) print("BrowserViz..setupWebSocketHandlers, onMessage ");
+         print("BrowserViz.setupWebSocketHandlers, onMessage, message received");
+         #if(!quiet) print("BrowserViz..setupWebSocketHandlers, onMessage ");
          message <- as.list(fromJSON(rawMessage))
          status$message <- message
          wsCon$lastMessage <- message
@@ -438,6 +440,7 @@ setMethod('getBrowserResponse', 'BrowserViz',
 addRMessageHandler <- function(key, functionName)
 {
    dispatchMap[[key]] <- functionName
+   printf("--- added new R message handler: %s", key)
 
 } # addRMessagHandler
 #---------------------------------------------------------------------------------------------------
@@ -497,6 +500,9 @@ setMethod('send', 'BrowserViz',
 
     function(obj, msg) {
       msg.json <- toJSON(msg)
+      printf("BrowserViz-class send, msg: ")
+      print(msg.json)
+      print(toJSON(msg))
       obj@websocketConnection$ws$send(toJSON(msg))
       status$result <- NULL
       })
@@ -579,6 +585,7 @@ setMethod('setBrowserWindowTitle', 'BrowserViz',
 
   function (obj, newTitle) {
      payload = list(title=newTitle)
+     printf("setBrowserWindow, new title: %s", newTitle)
      send(obj, list(cmd="setWindowTitle", callback="handleResponse", status="request",
                     payload=payload))
      while (!browserResponseReady(obj)){
@@ -661,7 +668,7 @@ webBrowserAvailableForTesting <- function()
 #' @rdname handleResponse
 #' @aliases handleResponse
 #'
-#' @param ws websocket connectin
+#' @param ws websocket connection
 #' @param msg the JSON-encoded character string returned by the browser
 #'
 #' @return NULL
@@ -671,11 +678,11 @@ webBrowserAvailableForTesting <- function()
 handleResponse <- function(ws, msg)
 {
    if(msg$status == "success" || msg$status == "failure"){
-      #printf("-------- handleResponse, msg$payload: ")
-      #print(msg$payload)
+      printf("-------- handleResponse, msg$payload: ")
+      print(msg$payload)
       status$result <- msg$payload
-      #printf("         status$result: ")
-      #print(status$result)
+      printf("         status$result: ")
+      print(status$result)
       }
    else{
      message(msg$payload)
