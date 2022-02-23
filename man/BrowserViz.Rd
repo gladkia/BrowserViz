@@ -6,6 +6,7 @@
 \title{Constructor for BrowserViz}
 \usage{
 BrowserViz(
+  host = "localhost",
   portRange = 10000:10100,
   title = "BrowserViz",
   browserFile,
@@ -14,7 +15,9 @@ BrowserViz(
 )
 }
 \arguments{
-\item{portRange}{The constructor looks for a free websocket port in this range.  15000:15100 by default}
+\item{host}{character The constructor will open an http/websocket port here for web browsers to connect to.  localhost by default}
+
+\item{portRange}{The constructor looks for a free websocket port in this range.  10000:10100 by default}
 
 \item{title}{Used for the web browser window, "igvR" by default}
 

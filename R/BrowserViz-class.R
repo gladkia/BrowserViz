@@ -65,7 +65,21 @@ setGeneric('roundTripTest',           signature='obj', function (obj, ...) stand
 setGeneric('getBrowserWindowSize',    signature='obj', function(obj) standardGeneric('getBrowserWindowSize'))
 setGeneric('displayHTMLInDiv',        signature='obj', function(obj, htmlText, div.id) standardGeneric('displayHTMLInDiv'))
 #----------------------------------------------------------------------------------------------------
-
+log <- function(...)
+{
+   params <- list(...)
+   arg.count <- length(params)
+      # printf("params length: %d", arg.count)
+   if(arg.count == 0) return(invisible())
+   if(arg.count == 1) {
+     print(params[[1]])
+     return(invisible())
+     }
+   if(arg.count > 1 && is.character(params[[1]])){
+     print(noquote(sprintf(...)))
+     }
+} # log
+#----------------------------------------------------------------------------------------------------
 # some global variables:
 BrowserViz.state <- new.env(parent=emptyenv())
 BrowserViz.state$onOpenCall <- 0
@@ -92,7 +106,7 @@ status$result <- NULL
 #----------------------------------------------------------------------------------------------------
 setupMessageHandlers <- function()
 {
-   printf("--- BrowserViz-class, setupMessageHanlders")
+   log("--- BrowserViz-class, setupMessageHanlders")
    addRMessageHandler("handleResponse", "handleResponse")
 
 } # setupMessageHandlers
@@ -116,7 +130,8 @@ setupMessageHandlers <- function()
 #' }
 #'
 #'
-#' @param portRange The constructor looks for a free websocket port in this range.  15000:15100 by default
+#' @param host character The constructor will open an http/websocket port here for web browsers to connect to.  localhost by default
+#' @param portRange The constructor looks for a free websocket port in this range.  10000:10100 by default
 #' @param title Used for the web browser window, "igvR" by default
 #' @param browserFile The full path to the bundled html, js and libraries, and css which constitute the browser app
 #' @param quiet A logical variable controlling verbosity during execution
@@ -129,14 +144,12 @@ setupMessageHandlers <- function()
 #'
 #'
 
-BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, quiet=TRUE,
+BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz", browserFile, quiet=TRUE,
                       httpQueryProcessingFunction=NULL)
 {
-  host <- "localhost"
-
   if(!quiet){
-     message(sprintf("BrowserViz constructor starting with html file '%s'", browserFile))
-     message(sprintf(" html file exists? %s", file.exists(browserFile)))
+     log("BrowserViz constructor starting with html file '%s'", browserFile)
+     log("   html file exists? %s", file.exists(browserFile))
      }
 
   stopifnot(file.exists(browserFile))
@@ -152,9 +165,8 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
 
   uri = sprintf("http://%s:%s", host, actualPort)
 
-
   if(!quiet){
-     message(sprintf("summoning default browser to get %s", uri))
+     log("summoning default browser to get %s", uri)
      }
 
   sleepTime <- 2
@@ -162,7 +174,7 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
   browseURL(uri, browser=.getBrowser())
 
   if(!quiet)
-     message(sprintf("starting daemonized server on port %s", actualPort))
+     log("starting daemonized server on port %s", actualPort)
 
   setupMessageHandlers()
 
@@ -174,11 +186,11 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
   sleepTime <- 100
 
   while(!wsCon$open){
-      wait(obj, sleepTime)
+     wait(obj, sleepTime)
      totalWait <- totalWait + (sleepTime/1000)
      }
 
-  message(sprintf("BrowserViz websocket ready after %6.2f seconds", totalWait));
+  log("BrowserViz websocket ready after %6.2f seconds", totalWait);
 
   obj
 
@@ -195,8 +207,8 @@ BrowserViz = function(portRange=10000:10100, title="BrowserViz", browserFile, qu
      if(port > max(portRange))
         done <- TRUE
      else{
-        message(sprintf("attempting to open websocket connection on port %d", port))
-        server <- tryCatch(startServer("127.0.0.1", port, wsCon),
+        log("attempting to open websocket connection on port %d", port)
+        server <- tryCatch(startServer("0.0.0.0", port, wsCon),
                          error=function(m){sprintf("port not available: %d", port)})
         }
      if("WebServer" %in% class(server))  # will be character if the port is already claimed
@@ -307,12 +319,12 @@ setMethod('ready', 'BrowserViz',
   function (obj) {
 
      if(!is.environment(obj@websocketConnection)){
-        message(sprintf("--- obj@websocketConnection not an environment"))
+        log("--- obj@websocketConnection not an environment")
         return(FALSE)
         }
 
      if(!obj@websocketConnection$open){
-       message(sprintf("--- obj@websocketConnection not open"))
+       log("--- obj@websocketConnection not open")
        return(FALSE)
        }
    TRUE;
@@ -348,7 +360,7 @@ setMethod('getBrowserResponse', 'BrowserViz',
 
   function (obj) {
     if(!obj@quiet){
-       message(sprintf("BrowserViz getBrowserResponse, length %d", length(status$result)))
+       log("BrowserViz getBrowserResponse, length %d", length(status$result))
        }
     x <- status$result
     return(x)
@@ -358,8 +370,8 @@ setMethod('getBrowserResponse', 'BrowserViz',
 .setupWebSocketHandlers <- function(wsCon, browserFile, quiet)
 {
    if(!quiet){
-      message(sprintf("--- entering BrowserViz .setupWebSocketHandlers"));
-      message(sprintf("    browserFile: %s (%s)", browserFile, file.exists(browserFile)));
+      log("--- entering BrowserViz .setupWebSocketHandlers");
+      log("    browserFile: %s (%s)", browserFile, file.exists(browserFile));
       }
 
    wsCon$open <- FALSE
@@ -371,10 +383,6 @@ setMethod('getBrowserResponse', 'BrowserViz',
       if(nchar(qs) > 0){
          if(!quiet) print("--- bv$call, about to call dynamically assigned queryProcessor");
          fields <- ls(req)
-         #for(field in fields){
-            #printf("---- request field: %s", field)
-            #print(req[[field]]);
-         #   }
          queryProcessorFunction <- BrowserViz.state[["httpQueryProcessingFunction"]]
          if(!is.null(queryProcessorFunction)){
             queryResult <- queryProcessorFunction(qs)
@@ -400,11 +408,10 @@ setMethod('getBrowserResponse', 'BrowserViz',
    wsCon$onWSOpen = function(ws) {
       BrowserViz.state$onOpenCall <- BrowserViz.state$onOpenCall + 1
       if(!quiet)
-         print("BrowserViz..setupWebSocketHandlers, wsCon$onWSOpen");
+         print("BrowserViz.setupWebSocketHandlers, wsCon$onWSOpen");
       wsCon$ws <- ws   # crucial assignment: this provides later calls to e.g.,  wsCon$ws$send
       ws$onMessage(function(binary, rawMessage) {
          print("BrowserViz.setupWebSocketHandlers, onMessage, message received");
-         #if(!quiet) print("BrowserViz..setupWebSocketHandlers, onMessage ");
          message <- as.list(fromJSON(rawMessage))
          status$message <- message
          wsCon$lastMessage <- message
@@ -417,7 +424,8 @@ setMethod('getBrowserResponse', 'BrowserViz',
             return;
             }
          cmd <- message$cmd
-         if(!quiet) message(sprintf("BrowserViz dispatching on msg$cmd: %s", message$cmd));
+         if(!quiet)
+            log("BrowserViz dispatching on msg$cmd: %s", message$cmd);
          dispatchMessage(ws, message, quiet);
          }) # onMessage
        wsCon$open <- TRUE
@@ -440,7 +448,7 @@ setMethod('getBrowserResponse', 'BrowserViz',
 addRMessageHandler <- function(key, functionName)
 {
    dispatchMap[[key]] <- functionName
-   printf("--- added new R message handler: %s", key)
+   log("--- added new R message handler: %s", key)
 
 } # addRMessagHandler
 #---------------------------------------------------------------------------------------------------
@@ -458,7 +466,7 @@ addRMessageHandler <- function(key, functionName)
 dispatchMessage <- function(ws, msg, quiet)
 {
    if(!msg$cmd %in% ls(dispatchMap)){
-       message(sprintf("dispatchMessage error!  the incoming cmd '%s' is not recognized", msg$cmd))
+       log("dispatchMessage error!  the incoming cmd '%s' is not recognized", msg$cmd)
        return()
        }
 
@@ -466,7 +474,7 @@ dispatchMessage <- function(ws, msg, quiet)
    success <- TRUE
 
    if(is.null(function.name)){
-       message(sprintf("dispatchMessage error!  cmd ('%s') not recognized", msg$cmd))
+       log("dispatchMessage error!  cmd ('%s') not recognized", msg$cmd)
        success <- FALSE
        return()
        }
@@ -474,13 +482,13 @@ dispatchMessage <- function(ws, msg, quiet)
    tryCatch(func <- get(function.name), error=function(m) func <<- NULL)
 
    if(is.null(func)){
-       message(sprintf("dispatchMessage error!  cmd ('%s') recognized but no corresponding function",
-              msg$cmd))
+       log("dispatchMessage error!  cmd ('%s' recognized but no corresponding function", msg$cmd)
        success <- FALSE
        }
 
    if(success){
-      if(!quiet) message(sprintf("BrowserViz.dispatchMessage calling function '%s'", function.name));
+      if(!quiet)
+          log("BrowserViz.dispatchMessage calling function '%s'", function.name)
       do.call(func, list(ws, msg))
       }
 
@@ -500,9 +508,11 @@ setMethod('send', 'BrowserViz',
 
     function(obj, msg) {
       msg.json <- toJSON(msg)
-      printf("BrowserViz-class send, msg: ")
-      print(msg.json)
-      print(toJSON(msg))
+      if(!obj@quiet){
+         log("BrowserViz-class send, msg: ")
+         log(msg.json)
+         log(toJSON(msg))
+         }   
       obj@websocketConnection$ws$send(toJSON(msg))
       status$result <- NULL
       })
@@ -585,7 +595,7 @@ setMethod('setBrowserWindowTitle', 'BrowserViz',
 
   function (obj, newTitle) {
      payload = list(title=newTitle)
-     printf("setBrowserWindow, new title: %s", newTitle)
+     log("setBrowserWindow, new title: %s", newTitle)
      send(obj, list(cmd="setWindowTitle", callback="handleResponse", status="request",
                     payload=payload))
      while (!browserResponseReady(obj)){
@@ -656,6 +666,7 @@ setMethod('displayHTMLInDiv', 'BrowserViz',
 webBrowserAvailableForTesting <- function()
 {
   authorsDevelopmentMachine <- grepl("hagfish", Sys.info()["nodename"])
+      
   bioconductorBuildSystem.linux <- with(as.list(Sys.info()), sysname == "Linux")
   interactiveUse <- interactive()
 
@@ -678,14 +689,14 @@ webBrowserAvailableForTesting <- function()
 handleResponse <- function(ws, msg)
 {
    if(msg$status == "success" || msg$status == "failure"){
-      printf("-------- handleResponse, msg$payload: ")
-      print(msg$payload)
+      log("-------- BrowserViz handleResponse")
+      #log(msg$payload)
       status$result <- msg$payload
-      printf("         status$result: ")
-      print(status$result)
+      #log("         status$result: ")
+      #log(status$result)
       }
    else{
-     message(msg$payload)
+     #log(msg$payload)
      status$result <- NULL
      }
 

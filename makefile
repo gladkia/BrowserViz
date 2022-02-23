@@ -1,3 +1,6 @@
+default:
+	@echo targets: quick [browserCode roxy install], vig, build, test, site
+
 quick:  browserCode roxy install
 
 all:  browserCode roxy build  install check
