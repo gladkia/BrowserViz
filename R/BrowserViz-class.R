@@ -65,24 +65,10 @@ setGeneric('roundTripTest',           signature='obj', function (obj, ...) stand
 setGeneric('getBrowserWindowSize',    signature='obj', function(obj) standardGeneric('getBrowserWindowSize'))
 setGeneric('displayHTMLInDiv',        signature='obj', function(obj, htmlText, div.id) standardGeneric('displayHTMLInDiv'))
 #----------------------------------------------------------------------------------------------------
-log <- function(...)
-{
-   params <- list(...)
-   arg.count <- length(params)
-      # printf("params length: %d", arg.count)
-   if(arg.count == 0) return(invisible())
-   if(arg.count == 1) {
-     print(params[[1]])
-     return(invisible())
-     }
-   if(arg.count > 1 && is.character(params[[1]])){
-     print(noquote(sprintf(...)))
-     }
-} # log
-#----------------------------------------------------------------------------------------------------
 # some global variables:
 BrowserViz.state <- new.env(parent=emptyenv())
 BrowserViz.state$onOpenCall <- 0
+BrowserViz.state$quiet <- TRUE
 
 # this maps from incoming json commands to function calls
 dispatchMap <- new.env(parent=emptyenv())
@@ -103,6 +89,23 @@ dispatchMap <- new.env(parent=emptyenv())
 
 status <- new.env(parent=emptyenv())
 status$result <- NULL
+#----------------------------------------------------------------------------------------------------
+log <- function(...)
+{
+   if(!BrowserViz.state$quiet){
+      params <- list(...)
+      arg.count <- length(params)
+      if(arg.count == 0) return(invisible())
+      if(arg.count == 1) {
+         print(params[[1]])
+         return(invisible())
+         }
+      if(arg.count > 1 && is.character(params[[1]])){
+         print(noquote(sprintf(...)))
+         }
+      } # if !quiet
+
+} # log
 #----------------------------------------------------------------------------------------------------
 setupMessageHandlers <- function()
 {
@@ -147,10 +150,9 @@ setupMessageHandlers <- function()
 BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz", browserFile, quiet=TRUE,
                       httpQueryProcessingFunction=NULL)
 {
-  if(!quiet){
-     log("BrowserViz constructor starting with html file '%s'", browserFile)
-     log("   html file exists? %s", file.exists(browserFile))
-     }
+  BrowserViz.state$quiet <- quiet
+  log("BrowserViz constructor starting with html file '%s'", browserFile)
+  log("   html file exists? %s", file.exists(browserFile))
 
   stopifnot(file.exists(browserFile))
 
@@ -165,16 +167,13 @@ BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz
 
   uri = sprintf("http://%s:%s", host, actualPort)
 
-  if(!quiet){
-     log("summoning default browser to get %s", uri)
-     }
+  log("summoning default browser to get %s", uri)
 
   sleepTime <- 2
   Sys.sleep(sleepTime);
   browseURL(uri, browser=.getBrowser())
 
-  if(!quiet)
-     log("starting daemonized server on port %s", actualPort)
+  log("starting daemonized server on port %s", actualPort)
 
   setupMessageHandlers()
 
@@ -359,9 +358,7 @@ setMethod('browserResponseReady', 'BrowserViz',
 setMethod('getBrowserResponse', 'BrowserViz',
 
   function (obj) {
-    if(!obj@quiet){
-       log("BrowserViz getBrowserResponse, length %d", length(status$result))
-       }
+    log("BrowserViz getBrowserResponse, length %d", length(status$result))
     x <- status$result
     return(x)
     })
@@ -369,10 +366,8 @@ setMethod('getBrowserResponse', 'BrowserViz',
 #----------------------------------------------------------------------------------------------------
 .setupWebSocketHandlers <- function(wsCon, browserFile, quiet)
 {
-   if(!quiet){
-      log("--- entering BrowserViz .setupWebSocketHandlers");
-      log("    browserFile: %s (%s)", browserFile, file.exists(browserFile));
-      }
+   log("--- entering BrowserViz .setupWebSocketHandlers");
+   log("    browserFile: %s (%s)", browserFile, file.exists(browserFile));
 
    wsCon$open <- FALSE
    wsCon$ws <- NULL
@@ -381,7 +376,7 @@ setMethod('getBrowserResponse', 'BrowserViz',
    wsCon$call = function(req) {
       qs <- req$QUERY_STRING
       if(nchar(qs) > 0){
-         if(!quiet) print("--- bv$call, about to call dynamically assigned queryProcessor");
+         log("--- bv$call, about to call dynamically assigned queryProcessor");
          fields <- ls(req)
          queryProcessorFunction <- BrowserViz.state[["httpQueryProcessingFunction"]]
          if(!is.null(queryProcessorFunction)){
@@ -407,11 +402,10 @@ setMethod('getBrowserResponse', 'BrowserViz',
       # called whenever a websocket connection is opened
    wsCon$onWSOpen = function(ws) {
       BrowserViz.state$onOpenCall <- BrowserViz.state$onOpenCall + 1
-      if(!quiet)
-         print("BrowserViz.setupWebSocketHandlers, wsCon$onWSOpen");
+      log("BrowserViz.setupWebSocketHandlers, wsCon$onWSOpen");
       wsCon$ws <- ws   # crucial assignment: this provides later calls to e.g.,  wsCon$ws$send
       ws$onMessage(function(binary, rawMessage) {
-         print("BrowserViz.setupWebSocketHandlers, onMessage, message received");
+         log("BrowserViz.setupWebSocketHandlers, onMessage, message received");
          message <- as.list(fromJSON(rawMessage))
          status$message <- message
          wsCon$lastMessage <- message
@@ -424,8 +418,7 @@ setMethod('getBrowserResponse', 'BrowserViz',
             return;
             }
          cmd <- message$cmd
-         if(!quiet)
-            log("BrowserViz dispatching on msg$cmd: %s", message$cmd);
+         log("BrowserViz dispatching on msg$cmd: %s", message$cmd);
          dispatchMessage(ws, message, quiet);
          }) # onMessage
        wsCon$open <- TRUE
@@ -487,8 +480,7 @@ dispatchMessage <- function(ws, msg, quiet)
        }
 
    if(success){
-      if(!quiet)
-          log("BrowserViz.dispatchMessage calling function '%s'", function.name)
+      log("BrowserViz.dispatchMessage calling function '%s'", function.name)
       do.call(func, list(ws, msg))
       }
 
@@ -508,11 +500,9 @@ setMethod('send', 'BrowserViz',
 
     function(obj, msg) {
       msg.json <- toJSON(msg)
-      if(!obj@quiet){
-         log("BrowserViz-class send, msg: ")
-         log(msg.json)
-         log(toJSON(msg))
-         }   
+      log("BrowserViz-class send, msg: ")
+      log(msg.json)
+      log(toJSON(msg))
       obj@websocketConnection$ws$send(toJSON(msg))
       status$result <- NULL
       })
@@ -666,7 +656,7 @@ setMethod('displayHTMLInDiv', 'BrowserViz',
 webBrowserAvailableForTesting <- function()
 {
   authorsDevelopmentMachine <- grepl("hagfish", Sys.info()["nodename"])
-      
+
   bioconductorBuildSystem.linux <- with(as.list(Sys.info()), sysname == "Linux")
   interactiveUse <- interactive()
 
