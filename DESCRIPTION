@@ -1,8 +1,8 @@
 Package: BrowserViz
 Type: Package
 Title: BrowserViz: interactive R/browser graphics using websockets and JSON
-Version: 2.17.2
-Date: 2023-09-06
+Version: 2.17.3
+Date: 2023-09-12
 Author: Paul Shannon
 Maintainer: Arkadiusz Gladki <gladki.arkadiusz@gmail.com>
 Depends: R (>= 3.5.0), jsonlite (>= 1.5), httpuv(>= 1.5.0)
@@ -10,8 +10,8 @@ Imports: methods, BiocGenerics
 Suggests: RUnit, BiocStyle, knitr, rmarkdown
 Description: Interactvive graphics in a web browser from R, using websockets and JSON.
 License: GPL-2
-URL: https://paul-shannon.github.io/BrowserViz/
-BugReports: https://github.com/paul-shannon/BrowserViz/issues
+URL: https://gladkia.github.io/BrowserViz/
+BugReports: https://github.com/gladkia/BrowserViz/issues
 LazyLoad: yes
 biocViews: Visualization, ThirdPartyClient
 NeedsCompilation: no

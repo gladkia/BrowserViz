@@ -12,7 +12,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/paul-shannon/IGV.git"
+    "url": "git://github.com/gladkia/igvR.git"
   },
   "dependencies": {
     "browservizjs": "github:paul-shannon/browservizjs"
