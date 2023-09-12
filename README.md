@@ -7,7 +7,7 @@ setting for exploratory data analysis.
 
 The basic architecture:
 
-![alt tag](https://raw.githubusercontent.com/paul-shannon/BrowserViz/master/docs/browserVizDiagram.png)
+![alt tag](https://raw.githubusercontent.com/gladkia/BrowserViz/master/docs/browserVizDiagram.png)
 
 This work is motivated by our belief that contemporary web browsers,
 supporting HTML5 and Canvas, and running increasingly powerful
