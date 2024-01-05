@@ -12,3 +12,4 @@ inst/unitTests/tmp*
 ^\.Rproj\.user$
 ^doc$
 ^Meta$
+^\.github$
