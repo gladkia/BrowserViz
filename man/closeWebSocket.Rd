@@ -13,3 +13,14 @@
 \description{
 Close the websocket connection - between your R session and your web browser.
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  show(bvApp)
+  closeWebSocket(bvApp)
+  }
+
+
+}

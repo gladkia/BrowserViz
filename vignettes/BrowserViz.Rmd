@@ -191,10 +191,11 @@ if(BrowserViz::webBrowserAvailableForTesting()){
    json.returned <- roundTripTest(bvApp, data)
    data.returned <- fromJSON(json.returned)
    message(sprintf("    %5d bytes exchanged", nchar(json.returned)))
-   stopifnot(data == data.returned)
+   stopifnot(identical(data, data.returned))
    html <- sprintf("<h3>round trip of json-encoded data, %d chars</h3>",
                    nchar(json.returned))
    displayHTMLInDiv(bvApp, html, "bvDemoDiv")
+   closeWebSocket(bvApp)
    }
 ```
 

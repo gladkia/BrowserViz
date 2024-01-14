@@ -13,3 +13,13 @@
 \description{
 Is the websocket connection to the browser ready for use?
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  ready(bvApp)
+  closeWebSocket(bvApp)
+  }
+
+}
