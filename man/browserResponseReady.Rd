@@ -13,3 +13,13 @@
 \description{
 browserResponseReady
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  browserResponseReady(bvApp)
+  closeWebSocket(bvApp)
+  }
+
+}

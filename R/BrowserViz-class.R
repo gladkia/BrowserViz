@@ -138,6 +138,21 @@ setupMessageHandlers <- function()
 #' @param httpQueryProcessingFunction a function, default NULL, provides subclasses with the
 #'   opportunity to execute code on the http server created here.
 #'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#'   json.returned <- roundTripTest(bvApp, data)
+#'   data.returned <- fromJSON(json.returned)
+#'   stopifnot(identical(data, data.returned))
+#'   html <- sprintf("<h3>round trip of json-encoded data, %d chars</h3>",
+#'                   nchar(json.returned))
+#'   displayHTMLInDiv(bvApp, html, "bvDemoDiv")
+#'   closeWebSocket(bvApp)
+#'   }
+#'
 #' @return An object of the BrowserViZ class
 #'
 #' @export
@@ -231,6 +246,15 @@ BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz
 #' @param obj An object of class BrowserViz
 #' @param msecs Numeric
 #'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   wait(bvApp, 100)
+#'   closeWebSocket(bvApp)
+#'   }
+#'
 #' @export
 #'
 
@@ -247,6 +271,15 @@ setMethod('wait', 'BrowserViz',
 #' @aliases show
 #'
 #' @param object An object of class BrowserViz
+#'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   show(bvApp)
+#'   closeWebSocket(bvApp)
+#'   }
 #'
 #' @export
 
@@ -269,6 +302,16 @@ setMethod('show', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   port(bvApp)
+#'   closeWebSocket(bvApp)
+#'   }
+#'
+#'
 #' @return the port number use in the websocket connection, a numeric value.
 #'
 #' @export
@@ -286,6 +329,16 @@ setMethod('port', 'BrowserViz',
 #' @aliases closeWebSocket
 #'
 #' @param obj An object of class BrowserViz
+#'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   show(bvApp)
+#'   closeWebSocket(bvApp)
+#'   }
+#'
 #'
 #' @export
 #'
@@ -311,6 +364,15 @@ setMethod('closeWebSocket', 'BrowserViz',
 #' @aliases ready
 #'
 #' @param obj An object of class BrowserViz
+#'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   ready(bvApp)
+#'   closeWebSocket(bvApp)
+#'   }
 #'
 #' @export
 #'
@@ -338,6 +400,15 @@ setMethod('ready', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   browserResponseReady(bvApp)
+#'   closeWebSocket(bvApp)
+#'   }
+#'
 #' @export
 #'
 setMethod('browserResponseReady', 'BrowserViz',
@@ -353,6 +424,18 @@ setMethod('browserResponseReady', 'BrowserViz',
 #' @aliases getBrowserResponse
 #'
 #' @param obj An object of class BrowserViz
+#'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#'   json.returned <- roundTripTest(bvApp, data)
+#'   data.returned <- fromJSON(json.returned)
+#'   stopifnot(identical(data, data.returned))
+#'   closeWebSocket(bvApp)
+#'   }
 #'
 #' @export
 #'
@@ -525,6 +608,15 @@ setMethod('send', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   getBrowserInfo(bvApp)
+#'   closeWebSocket(bvApp)
+#'   }
+#'
 #' @export
 #'
 setMethod('getBrowserInfo', 'BrowserViz',
@@ -545,6 +637,18 @@ setMethod('getBrowserInfo', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #' @param ... other arguments
+#'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#'   json.returned <- roundTripTest(bvApp, data)
+#'   data.returned <- fromJSON(json.returned)
+#'   stopifnot(identical(data, data.returned))
+#'   closeWebSocket(bvApp)
+#'   }
 #'
 #' @export
 #'
@@ -567,6 +671,15 @@ setMethod('roundTripTest', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   getBrowserWindowTitle(bvApp)
+#'   closeWebSocket(bvApp)
+#'   }
+#'
 #' @export
 #'
 setMethod('getBrowserWindowTitle', 'BrowserViz',
@@ -588,6 +701,17 @@ setMethod('getBrowserWindowTitle', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #' @param newTitle A character string
+#'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   getBrowserWindowTitle(bvApp)
+#'   setBrowserWindowTitle(bvApp, "testBrowser")
+#'   getBrowserWindowTitle(bvApp)
+#'   closeWebSocket(bvApp)
+#'   }
 #'
 #' @export
 #'
@@ -612,6 +736,16 @@ setMethod('setBrowserWindowTitle', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   getBrowserWindowSize(bvApp)
+#'   closeWebSocket(bvApp)
+#'   }
+#'
+#'
 #' @export
 #'
 setMethod('getBrowserWindowSize', 'BrowserViz',
@@ -633,6 +767,19 @@ setMethod('getBrowserWindowSize', 'BrowserViz',
 #' @param obj An object of class BrowserViz
 #' @param htmlText A character string with HTML markup
 #' @param div.id  A character string
+#'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#'   json.returned <- roundTripTest(bvApp, data)
+#'   html <- sprintf("<h3>round trip of json-encoded data, %d chars</h3>",
+#'                   nchar(json.returned))
+#'   displayHTMLInDiv(bvApp, html, "bvDemoDiv")
+#'   closeWebSocket(bvApp)
+#'   }
 #'
 #' @export
 #'
@@ -658,6 +805,19 @@ setMethod('displayHTMLInDiv', 'BrowserViz',
 #' @name webBrowserAvailableForTesting
 #' @rdname webBrowserAvailableForTesting
 #' @aliases webBrowserAvailableForTesting
+#'
+#' @examples 
+#' library(BrowserViz)
+#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if(BrowserViz::webBrowserAvailableForTesting()){
+#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#'   json.returned <- roundTripTest(bvApp, data)
+#'   html <- sprintf("<h3>round trip of json-encoded data, %d chars</h3>",
+#'                   nchar(json.returned))
+#'   displayHTMLInDiv(bvApp, html, "bvDemoDiv")
+#'   closeWebSocket(bvApp)
+#'   }
 #'
 #' @return Logical TRUE or FALSE
 #'

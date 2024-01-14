@@ -15,3 +15,13 @@
 \description{
 Pause for the specified number of milliseconds
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  wait(bvApp, 100)
+  closeWebSocket(bvApp)
+  }
+
+}

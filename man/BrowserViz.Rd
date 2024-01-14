@@ -43,3 +43,19 @@ This constructor function:
   \item installs an optional "httpQueryProcessingFunction" to handle http (non-websocket) requests.
 }
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  data <- list(lowercase=letters, uppercase=LETTERS)
+  json.returned <- roundTripTest(bvApp, data)
+  data.returned <- fromJSON(json.returned)
+  stopifnot(identical(data, data.returned))
+  html <- sprintf("<h3>round trip of json-encoded data, \%d chars</h3>",
+                  nchar(json.returned))
+  displayHTMLInDiv(bvApp, html, "bvDemoDiv")
+  closeWebSocket(bvApp)
+  }
+
+}

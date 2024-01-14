@@ -13,3 +13,14 @@
 \description{
 Supply the name of a function to call, identified by its key
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  getBrowserWindowSize(bvApp)
+  closeWebSocket(bvApp)
+  }
+
+
+}

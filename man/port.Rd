@@ -16,3 +16,14 @@ the port number use in the websocket connection, a numeric value.
 \description{
 Get the port number
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  port(bvApp)
+  closeWebSocket(bvApp)
+  }
+
+
+}

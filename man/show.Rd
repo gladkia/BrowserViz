@@ -13,3 +13,13 @@
 \description{
 Display the core attributes of the BrowserViz object to stdout
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  show(bvApp)
+  closeWebSocket(bvApp)
+  }
+
+}

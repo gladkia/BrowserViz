@@ -13,3 +13,13 @@
 \description{
 Retrieve basic attributes of the attached web browser.
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  getBrowserInfo(bvApp)
+  closeWebSocket(bvApp)
+  }
+
+}

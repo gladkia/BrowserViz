@@ -15,3 +15,16 @@
 \description{
 Send data to the browser, ensure that it is returned accurately.
 }
+\examples{
+library(BrowserViz)
+browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+if(BrowserViz::webBrowserAvailableForTesting()){
+  bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+  data <- list(lowercase=letters, uppercase=LETTERS)
+  json.returned <- roundTripTest(bvApp, data)
+  data.returned <- fromJSON(json.returned)
+  stopifnot(identical(data, data.returned))
+  closeWebSocket(bvApp)
+  }
+
+}
