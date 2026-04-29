@@ -13,3 +13,4 @@ inst/unitTests/tmp*
 ^doc$
 ^Meta$
 ^\.github$
+^AGENTS\.md$
