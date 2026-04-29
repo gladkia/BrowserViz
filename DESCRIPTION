@@ -5,8 +5,8 @@ Authors@R: c(
     person("Paul","Shannon", role = c("aut"), email = "paul.thurmond.shannon@gmail.com"),
     person("Arkadiusz", "Gladki", role=c("aut", "cre"), email="gladki.arkadiusz@gmail.com")
     )
-Version: 2.29.0
-Date: 2024-10-29
+Version: 2.35.0
+Date: 2023-09-12
 Author: Paul Shannon
 Maintainer: Arkadiusz Gladki <gladki.arkadiusz@gmail.com>
 Depends: R (>= 3.5.0), jsonlite (>= 1.5), httpuv(>= 1.5.0)
