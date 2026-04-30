@@ -2,6 +2,7 @@
 % Please edit documentation in R/BrowserViz-class.R
 \docType{package}
 \name{BrowserViz-class}
+\alias{-package}
 \alias{BrowserViz-class}
 \alias{.BrowserViz}
 \title{BrowserViz:  a base class providing simple, extensible message passing between

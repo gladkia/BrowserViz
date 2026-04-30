@@ -10,8 +10,8 @@
 \arguments{
 \item{obj}{An object of class BrowserViz}
 
-\item{msg}{A list with four fields: {cmd: "someCommand", status: "request",
-callback: "someFunction", payload: "someData"}}
+\item{msg}{A list with four fields: cmd, status, callback, payload
+e.g. list(cmd="someCommand", status="request", callback="someFunction", payload="someData")}
 }
 \description{
 Send the specified message to the browser
