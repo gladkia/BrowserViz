@@ -575,8 +575,8 @@ dispatchMessage <- function(ws, msg, quiet)
 #' @aliases send
 #'
 #' @param obj An object of class BrowserViz
-#' @param msg A list with four fields: {cmd: "someCommand", status: "request",
-#'                                      callback: "someFunction", payload: "someData"}
+#' @param msg A list with four fields: cmd, status, callback, payload
+#'   e.g. list(cmd="someCommand", status="request", callback="someFunction", payload="someData")
 #' @export
 #'
 setMethod('send', 'BrowserViz',
