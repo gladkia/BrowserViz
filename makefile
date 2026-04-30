@@ -28,3 +28,9 @@ test:
 
 site:
 	R -e "devtools::build_site()"
+
+check-podman:
+	podman run --rm -v $$(pwd):/pkg browserviz-test-env /bin/bash -c "Rscript -e \"gDRstyle::checkPackage('BrowserViz', repoDir='.')\""
+
+build-test-env:
+	podman build -t browserviz-test-env -f Containerfile .
