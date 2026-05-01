@@ -20,8 +20,8 @@
 #' @description
 #' Many of the best interactive graphics capabilities available today are written in Javascript and
 #' run in a web browser.  BrowserViz makes these capabilities available in R, using websockets
-#' for message passing back and forth between R and the browser. This class connects your R session to your web browser via websockets,
-#' using the R httupv library, which in turn uses the Rook webserver.
+#' for message passing back and forth between R and the browser. This class connects your R session
+#' to your web browser via websockets, using the R httpuv library, which in turn uses the Rook webserver.
 #'
 #' BrowserViz is a concrete base class, in that instances can be constructed and run - which we do for testing.
 #' The primary use of this BrowserViz is to be subclassed: to facilitate the creation of new
@@ -41,37 +41,37 @@
 #' @slot websocketConnection An environment managed by the httpuv library on our behalf
 #' @slot quiet Logical varaible controlling verbosity during execution
 #'
-.BrowserViz <- setClass ("BrowserViz",
-                         representation = representation (
-                                               uri="character",
-                                               port="numeric",
-                                               websocketConnection="environment",
-                                               quiet="logical"),
-                         prototype = prototype (uri="http://localhost", 9000)
+.BrowserViz <- setClass("BrowserViz",
+                         representation = representation(
+                                               uri = "character",
+                                               port = "numeric",
+                                               websocketConnection = "environment",
+                                               quiet = "logical"),
+                         prototype = prototype(uri = "http://localhost", 9000)
                          )
 
 #----------------------------------------------------------------------------------------------------
-setGeneric('wait',                    signature='obj', function(obj, msecs) standardGeneric('wait'))
-setGeneric('port',                    signature='obj', function(obj) standardGeneric('port'))
-setGeneric('ready',                   signature='obj', function(obj) standardGeneric('ready'))
-setGeneric('getBrowserInfo',          signature='obj', function(obj) standardGeneric('getBrowserInfo'))
-setGeneric('send',                    signature='obj', function(obj, msg) standardGeneric('send'))
-setGeneric('browserResponseReady',    signature='obj', function(obj) standardGeneric('browserResponseReady'))
-setGeneric('getBrowserResponse',      signature='obj', function(obj) standardGeneric('getBrowserResponse'))
-setGeneric('closeWebSocket',          signature='obj', function(obj) standardGeneric('closeWebSocket'))
-setGeneric('getBrowserWindowTitle',   signature='obj', function(obj) standardGeneric('getBrowserWindowTitle'))
-setGeneric('setBrowserWindowTitle',   signature='obj', function(obj, newTitle) standardGeneric('setBrowserWindowTitle'))
-setGeneric('roundTripTest',           signature='obj', function (obj, ...) standardGeneric('roundTripTest'))
-setGeneric('getBrowserWindowSize',    signature='obj', function(obj) standardGeneric('getBrowserWindowSize'))
-setGeneric('displayHTMLInDiv',        signature='obj', function(obj, htmlText, div.id) standardGeneric('displayHTMLInDiv'))
+setGeneric('wait', signature = 'obj', function(obj, msecs) standardGeneric('wait'))
+setGeneric('port', signature = 'obj', function(obj) standardGeneric('port'))
+setGeneric('ready', signature = 'obj', function(obj) standardGeneric('ready'))
+setGeneric('getBrowserInfo', signature = 'obj', function(obj) standardGeneric('getBrowserInfo'))
+setGeneric('send', signature = 'obj', function(obj, msg) standardGeneric('send'))
+setGeneric('browserResponseReady', signature = 'obj', function(obj) standardGeneric('browserResponseReady'))
+setGeneric('getBrowserResponse', signature = 'obj', function(obj) standardGeneric('getBrowserResponse'))
+setGeneric('closeWebSocket', signature = 'obj', function(obj) standardGeneric('closeWebSocket'))
+setGeneric('getBrowserWindowTitle', signature = 'obj', function(obj) standardGeneric('getBrowserWindowTitle'))
+setGeneric('setBrowserWindowTitle', signature = 'obj', function(obj, newTitle) standardGeneric('setBrowserWindowTitle'))
+setGeneric('roundTripTest', signature = 'obj', function(obj, ...) standardGeneric('roundTripTest'))
+setGeneric('getBrowserWindowSize', signature = 'obj', function(obj) standardGeneric('getBrowserWindowSize'))
+setGeneric('displayHTMLInDiv', signature = 'obj', function(obj, htmlText, div.id) standardGeneric('displayHTMLInDiv'))
 #----------------------------------------------------------------------------------------------------
 # some global variables:
-BrowserViz.state <- new.env(parent=emptyenv())
+BrowserViz.state <- new.env(parent = emptyenv())
 BrowserViz.state$onOpenCall <- 0
 BrowserViz.state$quiet <- TRUE
 
 # this maps from incoming json commands to function calls
-dispatchMap <- new.env(parent=emptyenv())
+dispatchMap <- new.env(parent = emptyenv())
 
 # status is global variable at file scope, invisible outside the package.
 # it keeps track of web sockect connection state, and -- crucially --
@@ -87,20 +87,20 @@ dispatchMap <- new.env(parent=emptyenv())
 # is accomplished by exported methods browserResponseReady and getBrowserResponse,
 # to be used by subclasses as well.
 
-status <- new.env(parent=emptyenv())
+status <- new.env(parent = emptyenv())
 status$result <- NULL
 #----------------------------------------------------------------------------------------------------
 log <- function(...)
 {
-   if(!BrowserViz.state$quiet){
+   if (!BrowserViz.state$quiet) {
       params <- list(...)
       arg.count <- length(params)
-      if(arg.count == 0) return(invisible())
-      if(arg.count == 1) {
+      if (arg.count == 0) return(invisible())
+      if (arg.count == 1) {
          print(params[[1]])
          return(invisible())
          }
-      if(arg.count > 1 && is.character(params[[1]])){
+      if (arg.count > 1 && is.character(params[[1]])) {
          print(noquote(sprintf(...)))
          }
       } # if !quiet
@@ -133,7 +133,8 @@ setupMessageHandlers <- function()
 #' }
 #'
 #'
-#' @param host character The constructor will open an http/websocket port here for web browsers to connect to.  localhost by default
+#' @param host character The constructor will open an http/websocket port here for web browsers to connect to.
+#'   localhost by default
 #' @param portRange The constructor looks for a free websocket port in this range.  10000:10100 by default
 #' @param title Used for the web browser window, "igvR" by default
 #' @param browserFile The full path to the bundled html, js and libraries, and css which constitute the browser app
@@ -141,12 +142,12 @@ setupMessageHandlers <- function()
 #' @param httpQueryProcessingFunction a function, default NULL, provides subclasses with the
 #'   opportunity to execute code on the http server created here.
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
-#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
+#'   data <- list(lowercase = letters, uppercase = LETTERS)
 #'   json.returned <- roundTripTest(bvApp, data)
 #'   data.returned <- fromJSON(json.returned)
 #'   stopifnot(identical(data, data.returned))
@@ -162,8 +163,8 @@ setupMessageHandlers <- function()
 #'
 #'
 
-BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz", browserFile, quiet=TRUE,
-                      httpQueryProcessingFunction=NULL)
+BrowserViz = function(host = "localhost", portRange = 10000:10100, title = "BrowserViz", browserFile, quiet = TRUE,
+                      httpQueryProcessingFunction = NULL)
 {
   BrowserViz.state$quiet <- quiet
   log("BrowserViz constructor starting with html file '%s'", browserFile)
@@ -171,13 +172,13 @@ BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz
 
   stopifnot(file.exists(browserFile))
 
-  wsCon <- new.env(parent=emptyenv())
+  wsCon <- new.env(parent = emptyenv())
   wsCon <- .setupWebSocketHandlers(wsCon, browserFile, quiet)
   result <- .startServerOnFirstAvailableLocalHostPort(portRange, wsCon)
   actualPort <- result$port
   wsCon$server <- result$server
 
-  if(is.null(actualPort))
+  if (is.null(actualPort))
     stop(sprintf("no available ports in range %d:%d", min(portRange), max(portRange)))
 
   uri = sprintf("http://%s:%s", host, actualPort)
@@ -186,22 +187,22 @@ BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz
 
   sleepTime <- 2
   Sys.sleep(sleepTime);
-  browseURL(uri, browser=.getBrowser())
+  browseURL(uri, browser = .getBrowser())
 
   log("starting daemonized server on port %s", actualPort)
 
   setupMessageHandlers()
 
-  obj <- .BrowserViz(uri=uri, websocketConnection=wsCon, port=actualPort, quiet=quiet)
+  obj <- .BrowserViz(uri = uri, websocketConnection = wsCon, port = actualPort, quiet = quiet)
 
   BrowserViz.state[["httpQueryProcessingFunction"]] <- httpQueryProcessingFunction
 
   totalWait <- 0.0
   sleepTime <- 100
 
-  while(!wsCon$open){
+  while (!wsCon$open) {
      wait(obj, sleepTime)
-     totalWait <- totalWait + (sleepTime/1000)
+     totalWait <- totalWait + (sleepTime / 1000)
      }
 
   log("BrowserViz websocket ready after %6.2f seconds", totalWait);
@@ -217,15 +218,15 @@ BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz
    port <- portRange[1]
    server <- NULL
 
-   while(!done){
-     if(port > max(portRange))
+   while (!done) {
+     if (port > max(portRange))
         done <- TRUE
-     else{
+     else {
         log("attempting to open websocket connection on port %d", port)
         server <- tryCatch(startServer("0.0.0.0", port, wsCon),
-                         error=function(m){sprintf("port not available: %d", port)})
+                         error = function(m) {sprintf("port not available: %d", port)})
         }
-     if("WebServer" %in% class(server))  # will be character if the port is already claimed
+     if ("WebServer" %in% class(server)) # will be character if the port is already claimed
         done <- TRUE
      else
         port <- port + 1;
@@ -233,7 +234,7 @@ BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz
 
    actualPort <- server$getPort()
 
-   list(server=server, port=actualPort)
+   list(server = server, port = actualPort)
 
 } # .startServerOnFirstAvailableLocalHostPort
 #----------------------------------------------------------------------------------------------------
@@ -245,11 +246,11 @@ BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz
 #' @param obj An object of class BrowserViz
 #' @param msecs Numeric
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   wait(bvApp, 100)
 #'   closeWebSocket(bvApp)
 #'   }
@@ -259,8 +260,8 @@ BrowserViz = function(host="localhost", portRange=10000:10100, title="BrowserViz
 
 setMethod('wait', 'BrowserViz',
 
-  function (obj, msecs) {
-     service(msecs)  # an httpuv function
+  function(obj, msecs) {
+     service(msecs) # an httpuv function
      }) # wait
 
 #----------------------------------------------------------------------------------------------------
@@ -271,11 +272,11 @@ setMethod('wait', 'BrowserViz',
 #'
 #' @param object An object of class BrowserViz
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   show(bvApp)
 #'   closeWebSocket(bvApp)
 #'   }
@@ -284,13 +285,13 @@ setMethod('wait', 'BrowserViz',
 
 setMethod('show', 'BrowserViz',
 
-  function (object) {
+  function(object) {
      msg <- sprintf("BrowserViz object");
-     cat(msg, '\n', sep='')
+     cat(msg, '\n', sep = '')
      msg <- sprintf("ready? %s", ready(object))
-     cat(msg, '\n', sep='')
+     cat(msg, '\n', sep = '')
      msg <- sprintf("port: %d", port(object))
-     cat(msg, '\n', sep='')
+     cat(msg, '\n', sep = '')
      }) # show
 
 #----------------------------------------------------------------------------------------------------
@@ -301,15 +302,14 @@ setMethod('show', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   port(bvApp)
 #'   closeWebSocket(bvApp)
 #'   }
-#'
 #'
 #' @return the port number use in the websocket connection, a numeric value.
 #'
@@ -317,7 +317,7 @@ setMethod('show', 'BrowserViz',
 #'
 setMethod('port', 'BrowserViz',
 
-  function (obj) {
+  function(obj) {
      obj@port
      })
 
@@ -329,22 +329,21 @@ setMethod('port', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   show(bvApp)
 #'   closeWebSocket(bvApp)
 #'   }
-#'
 #'
 #' @export
 #'
 setMethod('closeWebSocket', 'BrowserViz',
 
-  function (obj) {
-     if(!obj@websocketConnection$open){
+  function(obj) {
+     if (!obj@websocketConnection$open) {
         warning("websocket server is not open, cannot close");
         return()
         }
@@ -364,11 +363,11 @@ setMethod('closeWebSocket', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   ready(bvApp)
 #'   closeWebSocket(bvApp)
 #'   }
@@ -377,14 +376,14 @@ setMethod('closeWebSocket', 'BrowserViz',
 #'
 setMethod('ready', 'BrowserViz',
 
-  function (obj) {
+  function(obj) {
 
-     if(!is.environment(obj@websocketConnection)){
+     if (!is.environment(obj@websocketConnection)) {
         log("--- obj@websocketConnection not an environment")
         return(FALSE)
         }
 
-     if(!obj@websocketConnection$open){
+     if (!obj@websocketConnection$open) {
        log("--- obj@websocketConnection not open")
        return(FALSE)
        }
@@ -399,11 +398,11 @@ setMethod('ready', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   browserResponseReady(bvApp)
 #'   closeWebSocket(bvApp)
 #'   }
@@ -412,7 +411,7 @@ setMethod('ready', 'BrowserViz',
 #'
 setMethod('browserResponseReady', 'BrowserViz',
 
-  function (obj) {
+  function(obj) {
      return(!is.null(status$result))
      })
 
@@ -424,12 +423,12 @@ setMethod('browserResponseReady', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
-#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
+#'   data <- list(lowercase = letters, uppercase = LETTERS)
 #'   json.returned <- roundTripTest(bvApp, data)
 #'   data.returned <- fromJSON(json.returned)
 #'   stopifnot(identical(data, data.returned))
@@ -440,7 +439,7 @@ setMethod('browserResponseReady', 'BrowserViz',
 #'
 setMethod('getBrowserResponse', 'BrowserViz',
 
-  function (obj) {
+  function(obj) {
     log("BrowserViz getBrowserResponse, length %d", length(status$result))
     x <- status$result
     return(x)
@@ -458,45 +457,45 @@ setMethod('getBrowserResponse', 'BrowserViz',
      # process http requests
    wsCon$call = function(req) {
       qs <- req$QUERY_STRING
-      if(nchar(qs) > 0){
+      if (nchar(qs) > 0) {
          log("--- bv$call, about to call dynamically assigned queryProcessor");
          fields <- ls(req)
          queryProcessorFunction <- BrowserViz.state[["httpQueryProcessingFunction"]]
-         if(!is.null(queryProcessorFunction)){
+         if (!is.null(queryProcessorFunction)) {
             queryResult <- queryProcessorFunction(qs)
             body <- queryResult$body
             contentType <- queryResult$contentType
             }
-         else{
+         else {
             body <- "no query processor registered"
             contentType <- "text/html"
             }
-         return(list(status=200L, headers=list('Content-Type'=contentType), body=body))
+         return(list(status = 200L, headers = list('Content-Type' = contentType), body = body))
          } # the request had a query string
-      wsUrl = paste(sep='', '"', "ws://",
+      wsUrl = paste(sep = '', '"', "ws://",
                    ifelse(is.null(req$HTTP_HOST), req$SERVER_NAME, req$HTTP_HOST),
                    '"')
      list(
        status = 200L,
        headers = list('Content-Type' = 'text/html'),
-       body = c(file=browserFile))
+       body = c(file = browserFile))
        }
 
       # called whenever a websocket connection is opened
    wsCon$onWSOpen = function(ws) {
       BrowserViz.state$onOpenCall <- BrowserViz.state$onOpenCall + 1
       log("BrowserViz.setupWebSocketHandlers, wsCon$onWSOpen");
-      wsCon$ws <- ws   # crucial assignment: this provides later calls to e.g.,  wsCon$ws$send
+      wsCon$ws <- ws # crucial assignment: this provides later calls to e.g.,  wsCon$ws$send
       ws$onMessage(function(binary, rawMessage) {
          log("BrowserViz.setupWebSocketHandlers, onMessage, message received");
          message <- as.list(fromJSON(rawMessage))
          status$message <- message
          wsCon$lastMessage <- message
-         if(!is(message, "list")){
+         if (!is(message, "list")) {
             message("message: new websocket message is not a list");
             return;
             }
-         if (! "cmd" %in% names(message)){
+         if (!"cmd" %in% names(message)) {
             message("error: new websocket message has no 'cmd' field");
             return;
             }
@@ -541,7 +540,7 @@ addRMessageHandler <- function(key, functionName)
 
 dispatchMessage <- function(ws, msg, quiet)
 {
-   if(!msg$cmd %in% ls(dispatchMap)){
+   if (!msg$cmd %in% ls(dispatchMap)) {
        log("dispatchMessage error!  the incoming cmd '%s' is not recognized", msg$cmd)
        return()
        }
@@ -549,20 +548,20 @@ dispatchMessage <- function(ws, msg, quiet)
    function.name <- dispatchMap[[msg$cmd]]
    success <- TRUE
 
-   if(is.null(function.name)){
+   if (is.null(function.name)) {
        log("dispatchMessage error!  cmd ('%s') not recognized", msg$cmd)
        success <- FALSE
        return()
        }
 
-   tryCatch(func <- get(function.name), error=function(m) func <<- NULL)
+   tryCatch(func <- get(function.name), error = function(m) func <<- NULL)
 
-   if(is.null(func)){
+   if (is.null(func)) {
        log("dispatchMessage error!  cmd ('%s' recognized but no corresponding function", msg$cmd)
        success <- FALSE
        }
 
-   if(success){
+   if (success) {
       log("BrowserViz.dispatchMessage calling function '%s'", function.name)
       do.call(func, list(ws, msg))
       }
@@ -598,11 +597,11 @@ setMethod('send', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   getBrowserInfo(bvApp)
 #'   closeWebSocket(bvApp)
 #'   }
@@ -611,9 +610,9 @@ setMethod('send', 'BrowserViz',
 #'
 setMethod('getBrowserInfo', 'BrowserViz',
 
-  function (obj) {
-     send(obj, list(cmd="getBrowserInfo", callback="handleResponse", status="request", payload=""))
-     while (!browserResponseReady(obj)){
+  function(obj) {
+     send(obj, list(cmd = "getBrowserInfo", callback = "handleResponse", status = "request", payload = ""))
+     while (!browserResponseReady(obj)) {
         wait(obj, 100)
         }
      getBrowserResponse(obj);
@@ -628,12 +627,12 @@ setMethod('getBrowserInfo', 'BrowserViz',
 #' @param obj An object of class BrowserViz
 #' @param ... other arguments
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
-#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
+#'   data <- list(lowercase = letters, uppercase = LETTERS)
 #'   json.returned <- roundTripTest(bvApp, data)
 #'   data.returned <- fromJSON(json.returned)
 #'   stopifnot(identical(data, data.returned))
@@ -644,10 +643,10 @@ setMethod('getBrowserInfo', 'BrowserViz',
 #'
 setMethod('roundTripTest', 'BrowserViz',
 
-  function (obj, ...) {
+  function(obj, ...) {
      payload <- toJSON(...)
-     send(obj, list(cmd="roundTripTest", callback="handleResponse", status="request", payload=payload))
-     while (!browserResponseReady(obj)){
+     send(obj, list(cmd = "roundTripTest", callback = "handleResponse", status = "request", payload = payload))
+     while (!browserResponseReady(obj)) {
         wait(obj, 100)
         }
      getBrowserResponse(obj);
@@ -661,11 +660,11 @@ setMethod('roundTripTest', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   getBrowserWindowTitle(bvApp)
 #'   closeWebSocket(bvApp)
 #'   }
@@ -674,10 +673,10 @@ setMethod('roundTripTest', 'BrowserViz',
 #'
 setMethod('getBrowserWindowTitle', 'BrowserViz',
 
-  function (obj) {
-     send(obj, list(cmd="getWindowTitle", callback="handleResponse", status="request", payload=""))
-     #browser()
-     while (!browserResponseReady(obj)){
+  function(obj) {
+     send(obj, list(cmd = "getWindowTitle", callback = "handleResponse", status = "request", payload = ""))
+     # browser()
+     while (!browserResponseReady(obj)) {
         wait(obj, 100)
         }
      getBrowserResponse(obj);
@@ -692,11 +691,11 @@ setMethod('getBrowserWindowTitle', 'BrowserViz',
 #' @param obj An object of class BrowserViz
 #' @param newTitle A character string
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   getBrowserWindowTitle(bvApp)
 #'   setBrowserWindowTitle(bvApp, "testBrowser")
 #'   getBrowserWindowTitle(bvApp)
@@ -707,12 +706,12 @@ setMethod('getBrowserWindowTitle', 'BrowserViz',
 #'
 setMethod('setBrowserWindowTitle', 'BrowserViz',
 
-  function (obj, newTitle) {
-     payload = list(title=newTitle)
+  function(obj, newTitle) {
+     payload = list(title = newTitle)
      log("setBrowserWindow, new title: %s", newTitle)
-     send(obj, list(cmd="setWindowTitle", callback="handleResponse", status="request",
-                    payload=payload))
-     while (!browserResponseReady(obj)){
+     send(obj, list(cmd = "setWindowTitle", callback = "handleResponse", status = "request",
+                    payload = payload))
+     while (!browserResponseReady(obj)) {
         wait(obj, 100)
         }
      invisible(getBrowserResponse(obj))
@@ -726,23 +725,22 @@ setMethod('setBrowserWindowTitle', 'BrowserViz',
 #'
 #' @param obj An object of class BrowserViz
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
 #'   getBrowserWindowSize(bvApp)
 #'   closeWebSocket(bvApp)
 #'   }
-#'
 #'
 #' @export
 #'
 setMethod('getBrowserWindowSize', 'BrowserViz',
 
-  function (obj) {
-     send(obj, list(cmd="getWindowSize", callback="handleResponse", status="request", payload=""))
-     while (!browserResponseReady(obj)){
+  function(obj) {
+     send(obj, list(cmd = "getWindowSize", callback = "handleResponse", status = "request", payload = ""))
+     while (!browserResponseReady(obj)) {
         wait(obj, 100)
         }
      as.list(fromJSON(getBrowserResponse(obj)))
@@ -758,12 +756,12 @@ setMethod('getBrowserWindowSize', 'BrowserViz',
 #' @param htmlText A character string with HTML markup
 #' @param div.id  A character string
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
-#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
+#'   data <- list(lowercase = letters, uppercase = LETTERS)
 #'   json.returned <- roundTripTest(bvApp, data)
 #'   html <- sprintf("<h3>round trip of json-encoded data, %d chars</h3>",
 #'                   nchar(json.returned))
@@ -775,13 +773,13 @@ setMethod('getBrowserWindowSize', 'BrowserViz',
 #'
 setMethod('displayHTMLInDiv', 'BrowserViz',
 
-  function (obj, htmlText, div.id) {
-     payload = list(htmlText=htmlText, divID=div.id)
-     send(obj, list(cmd="displayHTMLInDiv", callback="handleResponse", status="request", payload=payload))
-     while (!browserResponseReady(obj)){
+  function(obj, htmlText, div.id) {
+     payload = list(htmlText = htmlText, divID = div.id)
+     send(obj, list(cmd = "displayHTMLInDiv", callback = "handleResponse", status = "request", payload = payload))
+     while (!browserResponseReady(obj)) {
         wait(obj, 100)
         }
-     #as.list(fromJSON(getBrowserResponse(obj)))
+     # as.list(fromJSON(getBrowserResponse(obj)))
      })
 
 #----------------------------------------------------------------------------------------------------
@@ -796,12 +794,12 @@ setMethod('displayHTMLInDiv', 'BrowserViz',
 #' @rdname webBrowserAvailableForTesting
 #' @aliases webBrowserAvailableForTesting
 #'
-#' @examples 
+#' @examples
 #' library(BrowserViz)
-#' browserVizBrowserFile <- system.file(package="BrowserViz", "browserCode", "dist", "bvDemoApp.html")
-#' if(BrowserViz::webBrowserAvailableForTesting()){
-#'   bvApp <- BrowserViz(browserFile=browserVizBrowserFile, quiet=TRUE)
-#'   data <- list(lowercase=letters, uppercase=LETTERS)
+#' browserVizBrowserFile <- system.file(package = "BrowserViz", "browserCode", "dist", "bvDemoApp.html")
+#' if (BrowserViz::webBrowserAvailableForTesting()) {
+#'   bvApp <- BrowserViz(browserFile = browserVizBrowserFile, quiet = TRUE)
+#'   data <- list(lowercase = letters, uppercase = LETTERS)
 #'   json.returned <- roundTripTest(bvApp, data)
 #'   html <- sprintf("<h3>round trip of json-encoded data, %d chars</h3>",
 #'                   nchar(json.returned))
@@ -838,15 +836,15 @@ webBrowserAvailableForTesting <- function()
 #'
 handleResponse <- function(ws, msg)
 {
-   if(msg$status == "success" || msg$status == "failure"){
+   if (msg$status == "success" || msg$status == "failure") {
       log("-------- BrowserViz handleResponse")
-      #log(msg$payload)
+      # log(msg$payload)
       status$result <- msg$payload
-      #log("         status$result: ")
-      #log(status$result)
+      # log("         status$result: ")
+      # log(status$result)
       }
-   else{
-     #log(msg$payload)
+   else {
+     # log(msg$payload)
      status$result <- NULL
      }
 
@@ -879,7 +877,7 @@ handleResponse <- function(ws, msg)
 #'
 #' @examples
 #'
-#'  toJSON(data.frame(a=8:10, b=LETTERS[8:10], stringsAsFactors=FALSE))
+#' toJSON(data.frame(a = 8:10, b = LETTERS[8:10], stringsAsFactors = FALSE))
 #'
 toJSON <- function(..., auto_unbox = TRUE)
 {
@@ -898,7 +896,7 @@ toJSON <- function(..., auto_unbox = TRUE)
 #'
 #' @examples
 #'
-#'  fromJSON(toJSON(data.frame(a=8:10, b=LETTERS[8:10], stringsAsFactors=FALSE)))
+#' fromJSON(toJSON(data.frame(a = 8:10, b = LETTERS[8:10], stringsAsFactors = FALSE)))
 #'
 fromJSON <- function(...)
 {
