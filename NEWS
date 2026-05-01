@@ -1,3 +1,10 @@
+CHANGES IN VERSION 2.35.1
+-------------------------
+
+    o Fixed unmatched braces in send() @param msg documentation (Rd NOTE).
+    o Added GitHub Actions CI workflow (R-CMD-check-bioc).
+    o Added automated push to Bioconductor devel on merge to master.
+
 CHANGES IN VERSION 2.35.0
 -------------------------
 
